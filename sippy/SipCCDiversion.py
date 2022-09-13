@@ -26,8 +26,9 @@
 
 from sippy.SipAddressHF import SipAddressHF
 
+
 class SipCCDiversion(SipAddressHF):
     hf_names = ('cc-diversion',)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'CC-Diversion'

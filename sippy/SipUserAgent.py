@@ -26,8 +26,9 @@
 
 from sippy.SipServer import SipServer
 
+
 class SipUserAgent(SipServer):
     hf_names = ('user-agent',)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'User-Agent'

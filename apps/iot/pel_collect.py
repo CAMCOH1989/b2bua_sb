@@ -30,12 +30,13 @@ import os, sys
 
 from os.path import dirname, abspath
 from inspect import getfile, currentframe
+
 currentdir = dirname(abspath(getfile(currentframe())))
 _parentdir = dirname(currentdir)
 parentdir = dirname(_parentdir)
 sys.path.insert(0, parentdir)
 
-#sys.path.append('../..')
+# sys.path.append('../..')
 
 from sippy.misc import daemonize
 from sippy.Core.EventDispatcher import ED2
@@ -49,7 +50,7 @@ if __name__ == '__main__':
         opts, args = getopt(sys.argv[1:], 'fl:p:n:L:s:u:P:i:')
     except GetoptError:
         print('usage: pel_collect.py [-l addr] [-p port] [-n addr] [-f] [-L logfile] [-u authname [-P authpass]]\n' \
-          '                   [-i pidfile]')
+              '                   [-i pidfile]')
         sys.exit(1)
     laddr = None
     lport = None
@@ -58,7 +59,7 @@ if __name__ == '__main__':
     authpass = None
     logfile = '/var/log/pel_collect.log'
     pidfile = None
-    global_config = {'nh_addr':['192.168.0.102', 5060]}
+    global_config = {'nh_addr': ['192.168.0.102', 5060]}
     foreground = False
     for o, a in opts:
         if o == '-f':
@@ -107,10 +108,10 @@ if __name__ == '__main__':
     global_config['_sip_logger'] = SipLogger('pel_collect')
 
     iua = IoTUAS(global_config, authname, authpass)
-    #pio = PELIO(lfile)
-    #if sdev != None:
+    # pio = PELIO(lfile)
+    # if sdev != None:
     #    pio.sdev = sdev
-    #pio.sstart_cb = pua.sess_started
-    #pio.send_cb = pua.sess_ended
-    #pio.start()
+    # pio.sstart_cb = pua.sess_started
+    # pio.send_cb = pua.sess_ended
+    # pio.start()
     ED2.loop()

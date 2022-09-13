@@ -28,18 +28,32 @@
 from time import time, strftime, gmtime
 from sippy.Time.Timeout import Timeout
 
-sipErrToH323Err = {400:('7f', 'Interworking, unspecified'), 401:('39', 'Bearer capability not authorized'), \
-  402:('15', 'Call rejected'), 403:('39', 'Bearer capability not authorized'), 404:('1', 'Unallocated number'), \
-  405:('7f', 'Interworking, unspecified'), 406:('7f', 'Interworking, unspecified'), 407:('15', 'Call rejected'), \
-  408:('66', 'Recover on Expires timeout'), 409:('29', 'Temporary failure'), 410:('1', 'Unallocated number'), \
-  411:('7f', 'Interworking, unspecified'), 413:('7f', 'Interworking, unspecified'), 414:('7f', 'Interworking, unspecified'), \
-  415:('4f', 'Service or option not implemented'), 420:('7f', 'Interworking, unspecified'), 480:('12', 'No user response'), \
-  481:('7f', 'Interworking, unspecified'), 482:('7f', 'Interworking, unspecified'), 483:('7f', 'Interworking, unspecified'), \
-  484:('1c', 'Address incomplete'), 485:('1', 'Unallocated number'), 486:('11', 'User busy'), 487:('12', 'No user responding'), \
-  488:('7f', 'Interworking, unspecified'), 500:('29', 'Temporary failure'), 501:('4f', 'Service or option not implemented'), \
-  502:('26', 'Network out of order'), 503:('3f', 'Service or option unavailable'), 504:('66', 'Recover on Expires timeout'), \
-  505:('7f', 'Interworking, unspecified'), 580:('2f', 'Resource unavailable, unspecified'), 600:('11', 'User busy'), \
-  603:('15', 'Call rejected'), 604:('1',  'Unallocated number'), 606:('3a', 'Bearer capability not presently available')}
+sipErrToH323Err = {
+    400: ('7f', 'Interworking, unspecified'), 401: ('39', 'Bearer capability not authorized'),
+    402: ('15', 'Call rejected'), 403: ('39', 'Bearer capability not authorized'),
+    404: ('1', 'Unallocated number'),
+    405: ('7f', 'Interworking, unspecified'), 406: ('7f', 'Interworking, unspecified'),
+    407: ('15', 'Call rejected'),
+    408: ('66', 'Recover on Expires timeout'), 409: ('29', 'Temporary failure'),
+    410: ('1', 'Unallocated number'),
+    411: ('7f', 'Interworking, unspecified'), 413: ('7f', 'Interworking, unspecified'),
+    414: ('7f', 'Interworking, unspecified'),
+    415: ('4f', 'Service or option not implemented'), 420: ('7f', 'Interworking, unspecified'),
+    480: ('12', 'No user response'),
+    481: ('7f', 'Interworking, unspecified'), 482: ('7f', 'Interworking, unspecified'),
+    483: ('7f', 'Interworking, unspecified'),
+    484: ('1c', 'Address incomplete'), 485: ('1', 'Unallocated number'), 486: ('11', 'User busy'),
+    487: ('12', 'No user responding'),
+    488: ('7f', 'Interworking, unspecified'), 500: ('29', 'Temporary failure'),
+    501: ('4f', 'Service or option not implemented'),
+    502: ('26', 'Network out of order'), 503: ('3f', 'Service or option unavailable'),
+    504: ('66', 'Recover on Expires timeout'),
+    505: ('7f', 'Interworking, unspecified'), 580: ('2f', 'Resource unavailable, unspecified'),
+    600: ('11', 'User busy'),
+    603: ('15', 'Call rejected'), 604: ('1', 'Unallocated number'),
+    606: ('3a', 'Bearer capability not presently available')
+}
+
 
 class RadiusAccounting(object):
     global_config = None
@@ -58,23 +72,33 @@ class RadiusAccounting(object):
     p1xx_ts = None
     p100_ts = None
 
-    def __init__(self, global_config, origin, lperiod = None, send_start = False):
+    def __init__(self, global_config, origin, lperiod=None, send_start=False):
         self.global_config = global_config
-        self._attributes = [('h323-call-origin', origin), ('h323-call-type', 'VoIP'), \
-          ('h323-session-protocol', 'sipv2')]
+        self._attributes = [
+            ('h323-call-origin', origin),
+            ('h323-call-type', 'VoIP'),
+            ('h323-session-protocol', 'sipv2')
+        ]
         self.drec = False
         self.crec = False
         self.origin = origin
         self.lperiod = lperiod
         self.send_start = send_start
 
-    def setParams(self, username, caller, callee, sip_cid, remote_ip, \
-      h323_in_cid = None):
+    def setParams(self, username, caller, callee, sip_cid, remote_ip,
+                  h323_in_cid=None):
         if caller == None:
             caller = ''
-        self._attributes.extend((('User-Name', username), ('Calling-Station-Id', caller), \
-          ('Called-Station-Id', callee), ('call-id', sip_cid), \
-          ('Acct-Session-Id', sip_cid), ('h323-remote-address', remote_ip)))
+        self._attributes.extend(
+            (
+                ('User-Name', username),
+                ('Calling-Station-Id', caller),
+                ('Called-Station-Id', callee),
+                ('call-id', sip_cid),
+                ('Acct-Session-Id', sip_cid),
+                ('h323-remote-address', remote_ip)
+            )
+        )
         if h323_in_cid != None:
             self._attributes.append(('h323-incoming-conf-id', h323_in_cid))
         self.sip_cid = str(sip_cid)
@@ -98,7 +122,7 @@ class RadiusAccounting(object):
         if self.lperiod != None and self.lperiod > 0:
             self.el = Timeout(self.asend, self.lperiod, -1, 'Alive')
 
-    def disc(self, ua, rtime, origin, result = 0):
+    def disc(self, ua, rtime, origin, result=0):
         if self.drec:
             return
         self.drec = True
@@ -117,7 +141,7 @@ class RadiusAccounting(object):
             self.p100_ts = ua.p100_ts
         self.asend('Stop', rtime, origin, result, ua)
 
-    def asend(self, type, rtime = None, origin = None, result = 0, ua = None):
+    def asend(self, type, rtime=None, origin=None, result=0, ua=None):
         if not self.complete:
             return
         if rtime == None:
@@ -129,7 +153,7 @@ class RadiusAccounting(object):
             duration = rtime - self.cTime
             delay = self.cTime - self.iTime
             connected = True
-        if not(self.ms_precision):
+        if not (self.ms_precision):
             duration = round(duration)
             delay = round(delay)
         attributes = self._attributes[:]
@@ -143,8 +167,8 @@ class RadiusAccounting(object):
                 dc = '10'
             else:
                 dc = '0'
-            attributes.extend((('h323-disconnect-time', self.ftime(self.iTime.realt + delay + duration)), \
-              ('Acct-Session-Time', '%d' % round(duration)), ('h323-disconnect-cause', dc)))
+            attributes.extend((('h323-disconnect-time', self.ftime(self.iTime.realt + delay + duration)),
+                               ('Acct-Session-Time', '%d' % round(duration)), ('h323-disconnect-cause', dc)))
         if type == 'Stop':
             if origin == 'caller':
                 release_source = '2'
@@ -153,8 +177,8 @@ class RadiusAccounting(object):
             else:
                 release_source = '8'
             attributes.append(('release-source', release_source))
-        attributes.extend((('h323-connect-time', self.ftime(self.iTime.realt + delay)), \
-          ('h323-setup-time', self.ftime(self.iTime.realt)), ('Acct-Status-Type', type)))
+        attributes.extend((('h323-connect-time', self.ftime(self.iTime.realt + delay)),
+                           ('h323-setup-time', self.ftime(self.iTime.realt)), ('Acct-Status-Type', type)))
         if self.user_agent != None:
             attributes.append(('h323-ivr-out', 'sip_ua:' + self.user_agent))
         if self.p1xx_ts != None:
@@ -163,7 +187,7 @@ class RadiusAccounting(object):
             attributes.append(('provisional-timepoint', self.ftime(self.p100_ts.realt)))
         pattributes = ['%-32s = \'%s\'\n' % (x[0], str(x[1])) for x in attributes]
         pattributes.insert(0, 'sending Acct %s (%s):\n' % (type, self.origin.capitalize()))
-        self.global_config['_sip_logger'].write(call_id = self.sip_cid, *pattributes)
+        self.global_config['_sip_logger'].write(call_id=self.sip_cid, *pattributes)
         self.global_config['_radius_client'].do_acct(attributes, self._process_result, self.sip_cid, time())
 
     def ftime(self, t):
@@ -187,4 +211,4 @@ class RadiusAccounting(object):
                 message = 'Acct/%s request rejected (delay is %.3f)\n' % (self.origin, delay)
         else:
             message = 'Error sending Acct/%s request (delay is %.3f)\n' % (self.origin, delay)
-        self.global_config['_sip_logger'].write(message, call_id = sip_cid)
+        self.global_config['_sip_logger'].write(message, call_id=sip_cid)

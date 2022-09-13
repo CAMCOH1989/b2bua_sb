@@ -26,8 +26,9 @@
 
 from sippy.SipNumericHF import SipNumericHF
 
+
 class SipExpires(SipNumericHF):
     hf_names = ('expires',)
 
-    def __init__(self, body = None, number = 300):
+    def __init__(self, body=None, number=300):
         SipNumericHF.__init__(self, body, number)

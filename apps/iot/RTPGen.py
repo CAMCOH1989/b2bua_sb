@@ -25,8 +25,8 @@
 
 from threading import Thread, Lock
 
-#import sys
-#sys.path.append('../..')
+# import sys
+# sys.path.append('../..')
 
 from math import floor
 
@@ -41,6 +41,7 @@ RTPGenInit = 0
 RTPGenRun = 1
 RTPGenSuspend = 2
 RTPGenStop = 3
+
 
 class RTPGen(Thread):
     ptime = 0.030
@@ -107,9 +108,9 @@ class RTPGen(Thread):
                 if cstate == RTPGenSuspend:
                     self.rsth.next_pkt(240, 0)
                 else:
-                    rp = self.rsth.next_pkt(240, 0, pload = self.dequeue())
+                    rp = self.rsth.next_pkt(240, 0, pload=self.dequeue())
                     self.userv.send_to(rp, self.target)
-            #print(npkt - last_npkt)
+            # print(npkt - last_npkt)
             last_npkt = npkt
             self.elp.procrastinate()
 
@@ -136,6 +137,7 @@ class RTPGen(Thread):
             raise Exception(etext)
         self.state_lock.release()
 
+
 class FakeUserv(object):
     nsent = 0
 
@@ -143,12 +145,14 @@ class FakeUserv(object):
         self.nsent += 1
         pass
 
+
 if __name__ == '__main__':
     r = RTPGen()
     s = FakeUserv()
     t = ('127.0.0.1', 12345)
     r.start(s, t)
     from time import sleep
+
     sleep(2)
     r.suspend()
     sleep(1)

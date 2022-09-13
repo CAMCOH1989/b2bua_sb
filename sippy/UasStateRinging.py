@@ -26,9 +26,10 @@
 
 from sippy.UaStateGeneric import UaStateGeneric
 from sippy.CCEvents import CCEventRing, CCEventConnect, CCEventFail, CCEventRedirect, \
-  CCEventDisconnect, CCEventPreConnect
+    CCEventDisconnect, CCEventPreConnect
 from sippy.SipContact import SipContact
 from sippy.SipAddress import SipAddress
+
 
 class UasStateRinging(UaStateGeneric):
     sname = 'Ringing(UAS)'
@@ -64,8 +65,8 @@ class UasStateRinging(UaStateGeneric):
                 extra_headers = None
             self.ua.lSDP = body
             if isinstance(event, CCEventConnect):
-                self.ua.sendUasResponse(code, reason, body, (self.ua.lContact,), ack_wait = False, \
-                  extra_headers = extra_headers)
+                self.ua.sendUasResponse(code, reason, body, (self.ua.lContact,), ack_wait=False, \
+                                        extra_headers=extra_headers)
                 if self.ua.expire_timer != None:
                     self.ua.expire_timer.cancel()
                     self.ua.expire_timer = None
@@ -73,8 +74,8 @@ class UasStateRinging(UaStateGeneric):
                 self.ua.connect_ts = event.rtime
                 return (UaStateConnected, self.ua.conn_cbs, event.rtime, event.origin)
             else:
-                self.ua.sendUasResponse(code, reason, body, (self.ua.lContact,), ack_wait = True, \
-                  extra_headers = extra_headers)
+                self.ua.sendUasResponse(code, reason, body, (self.ua.lContact,), ack_wait=True, \
+                                        extra_headers=extra_headers)
                 return (UaStateConnected,)
         elif isinstance(event, CCEventRedirect):
             scode = event.getData()
@@ -82,7 +83,7 @@ class UasStateRinging(UaStateGeneric):
             if scode == None:
                 scode = (500, 'Failed', None, None)
             elif scode[3] != None:
-                contacts = tuple(SipContact(address = x) for x in scode[3])
+                contacts = tuple(SipContact(address=x) for x in scode[3])
             self.ua.sendUasResponse(scode[0], scode[1], scode[2], contacts)
             if self.ua.expire_timer != None:
                 self.ua.expire_timer.cancel()
@@ -97,36 +98,37 @@ class UasStateRinging(UaStateGeneric):
                 extra_headers = tuple(event.extra_headers)
             else:
                 extra_headers = None
-            self.ua.sendUasResponse(scode[0], scode[1], reason_rfc3326 = event.reason, \
-              extra_headers = extra_headers)
+            self.ua.sendUasResponse(scode[0], scode[1], reason_rfc3326=event.reason, \
+                                    extra_headers=extra_headers)
             if self.ua.expire_timer != None:
                 self.ua.expire_timer.cancel()
                 self.ua.expire_timer = None
             self.ua.disconnect_ts = event.rtime
             return (UaStateFailed, self.ua.fail_cbs, event.rtime, event.origin, scode[0])
         elif isinstance(event, CCEventDisconnect):
-            #import sys, traceback
-            #traceback.print_stack(file = sys.stdout)
-            self.ua.sendUasResponse(500, 'Disconnected', reason_rfc3326 = event.reason)
+            # import sys, traceback
+            # traceback.print_stack(file = sys.stdout)
+            self.ua.sendUasResponse(500, 'Disconnected', reason_rfc3326=event.reason)
             if self.ua.expire_timer != None:
                 self.ua.expire_timer.cancel()
                 self.ua.expire_timer = None
             self.ua.disconnect_ts = event.rtime
             return (UaStateDisconnected, self.ua.disc_cbs, event.rtime, event.origin, self.ua.last_scode)
-        #print 'wrong event %s in the Ringing state' % event
+        # print 'wrong event %s in the Ringing state' % event
         return None
 
     def recvRequest(self, req):
         if req.getMethod() == 'BYE':
             self.ua.sendUasResponse(487, 'Request Terminated')
             self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(200, 'OK',
-              server = self.ua.local_ua), lossemul = self.ua.uas_lossemul)
-            #print 'BYE received in the Ringing state, going to the Disconnected state'
+                                                                          server=self.ua.local_ua),
+                                                          lossemul=self.ua.uas_lossemul)
+            # print 'BYE received in the Ringing state, going to the Disconnected state'
             if req.countHFs('also') > 0:
                 also = req.getHFBody('also').getCopy()
             else:
                 also = None
-            event = CCEventDisconnect(also, rtime = req.rtime, origin = self.ua.origin)
+            event = CCEventDisconnect(also, rtime=req.rtime, origin=self.ua.origin)
             try:
                 event.reason = req.getHFBody('reason')
             except:
@@ -142,13 +144,14 @@ class UasStateRinging(UaStateGeneric):
     def cancel(self, rtime, req):
         self.ua.disconnect_ts = rtime
         self.ua.changeState((UaStateDisconnected, self.ua.disc_cbs, rtime, self.ua.origin))
-        event = CCEventDisconnect(rtime = rtime, origin = self.ua.origin)
+        event = CCEventDisconnect(rtime=rtime, origin=self.ua.origin)
         if req != None:
             try:
                 event.reason = req.getHFBody('reason')
             except:
                 pass
         self.ua.emitEvent(event)
+
 
 if not 'UaStateFailed' in globals():
     from sippy.UaStateFailed import UaStateFailed

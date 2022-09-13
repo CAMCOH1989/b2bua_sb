@@ -28,20 +28,21 @@ from sippy.SipGenericHF import SipGenericHF
 
 import socket
 
+
 class SipWarning(SipGenericHF):
     hf_names = ('warning',)
     code = 399
     agent = socket.gethostname()
     text = None
 
-    def __init__(self, body = None, cself = None, code = None, text = None):
+    def __init__(self, body=None, cself=None, code=None, text=None):
         SipGenericHF.__init__(self, body)
         if body != None:
             return
         self.parsed = True
         if cself != None:
             self.code, self.agent, self.text = \
-              cself.code, cself.agent, cself.text
+                cself.code, cself.agent, cself.text
         else:
             self.agent = socket.gethostname()
             if code != None:
@@ -60,4 +61,4 @@ class SipWarning(SipGenericHF):
         return '%d %s "%s"' % (self.code, self.agent, self.text)
 
     def getCopy(self):
-        return self.__class__(cself = self)
+        return self.__class__(cself=self)

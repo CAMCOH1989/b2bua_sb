@@ -33,6 +33,7 @@ except ImportError:
     from urllib.parse import unquote
 from socket import getaddrinfo, SOCK_STREAM, AF_INET, AF_INET6
 
+
 class B2BRoute(object):
     rnum = None
     addrinfo = None
@@ -54,7 +55,7 @@ class B2BRoute(object):
     ainfo = None
     extra_headers = None
 
-    def __init__(self, sroute = None, cself = None):
+    def __init__(self, sroute=None, cself=None):
         if cself != None:
             self.rnum = cself.rnum
             self.addrinfo = cself.addrinfo
@@ -159,7 +160,7 @@ class B2BRoute(object):
             self.extra_headers = tuple(extra_headers)
 
     def customize(self, rnum, default_cld, default_cli, default_credit_time, \
-      pass_headers, max_credit_time):
+                  pass_headers, max_credit_time):
         self.rnum = rnum
         if not self.cld_set:
             self.cld = default_cld
@@ -179,7 +180,7 @@ class B2BRoute(object):
                 self.credit_time = max_credit_time
 
     def getCopy(self):
-        return self.__class__(cself = self)
+        return self.__class__(cself=self)
 
     def getNHAddr(self, source):
         if source[0].startswith('['):

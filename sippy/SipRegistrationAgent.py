@@ -25,13 +25,13 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sippy.Time.Timeout import Timeout
-from sippy.SipURL import SipURL
 from sippy.SipTo import SipTo
 from sippy.SipFrom import SipFrom
 from sippy.SipAddress import SipAddress
 from sippy.SipContact import SipContact
 from sippy.SipRequest import SipRequest
 from sippy.SipHeader import SipHeader
+
 
 class SipRegistrationAgent(object):
     global_config = None
@@ -42,7 +42,8 @@ class SipRegistrationAgent(object):
     atries = 0
     source_address = None
 
-    def __init__(self, global_config, aor, contact, user = None, passw = None, exp = 180, rok_cb = None, rfail_cb = None, cb_arg = None, target = None):
+    def __init__(self, global_config, aor, contact, user=None, passw=None, exp=180, rok_cb=None, rfail_cb=None,
+                 cb_arg=None, target=None):
         self.global_config = global_config
         self.user = user
         self.passw = passw
@@ -52,19 +53,19 @@ class SipRegistrationAgent(object):
         ruri = aor.getCopy()
         ruri.username = None
         aor.port = None
-        tfaddr = SipAddress(url = aor)
-        fr0m = SipFrom(address = tfaddr.getCopy())
+        tfaddr = SipAddress(url=aor)
+        fr0m = SipFrom(address=tfaddr.getCopy())
         fr0m.genTag()
-        to = SipTo(address = tfaddr)
-        contact = SipContact(address = SipAddress(url = contact))
+        to = SipTo(address=tfaddr)
+        contact = SipContact(address=SipAddress(url=contact))
         contact.address.params['expires'] = '180'
-        self.rmsg = SipRequest(method = 'REGISTER', ruri = ruri, fr0m = fr0m, contact = contact, to = to, target = target)
+        self.rmsg = SipRequest(method='REGISTER', ruri=ruri, fr0m=fr0m, contact=contact, to=to, target=target)
 
     def doregister(self):
         if self.dead:
             return
         self.global_config['_sip_tm'].newTransaction(self.rmsg, self.gotreply, \
-          laddress = self.source_address)
+                                                     laddress=self.source_address)
         self.rmsg.getHFBody('via').genBranch()
         self.rmsg.getHFBody('cseq').incCSeqNum()
 
@@ -93,22 +94,22 @@ class SipRegistrationAgent(object):
             self.atries = 0
             return
         if resp.scode == 401 and resp.countHFs('www-authenticate') != 0 and \
-          self.user != None and self.passw != None and self.atries < 3:
+                self.user != None and self.passw != None and self.atries < 3:
             challenge = resp.getHFBody('www-authenticate')
             auth = challenge.genAuthHF(self.user, self.passw, 'REGISTER', str(self.rmsg.ruri))
             for authorization in self.rmsg.getHFs('authorization'):
                 self.rmsg.removeHeader(authorization)
-            self.rmsg.appendHeader(SipHeader(name = 'authorization', body = auth))
+            self.rmsg.appendHeader(SipHeader(name='authorization', body=auth))
             self.atries += 1
             self.doregister()
             return
         if resp.scode == 407 and resp.countHFs('proxy-authenticate') != 0 and \
-          self.user != None and self.passw != None and self.atries < 3:
+                self.user != None and self.passw != None and self.atries < 3:
             challenge = resp.getHFBody('proxy-authenticate')
             auth = challenge.genAuthHF(self.user, self.passw, 'REGISTER', str(self.rmsg.ruri))
             for authorization in self.rmsg.getHFs('proxy-authorization'):
                 self.rmsg.removeHeader(authorization)
-            self.rmsg.appendHeader(SipHeader(name = 'proxy-authorization', body = auth))
+            self.rmsg.appendHeader(SipHeader(name='proxy-authorization', body=auth))
             self.atries += 1
             self.doregister()
             return

@@ -27,10 +27,11 @@
 from sippy.SipGenericHF import SipGenericHF
 from sippy.SipConf import SipConf
 from sippy.SipAuthorization import SipAuthorization, IsDigestAlgSupported, \
-  NameList2AlgMask
+    NameList2AlgMask
 from sippy.Security.SipNonce import HashOracle
 
-from Crypto import Random
+from Cryptodome import Random
+
 
 class SipWWWAuthenticate(SipGenericHF):
     hf_names = ('www-authenticate',)
@@ -50,8 +51,8 @@ class SipWWWAuthenticate(SipGenericHF):
         # Python 2.7 shim
         readhex = lambda self, x: self.rng.read(x).encode('hex')
 
-    def __init__(self, body = None, realm = None, nonce = None, \
-      algorithm = None):
+    def __init__(self, body=None, realm=None, nonce=None,
+                 algorithm=None):
         self.otherparams = []
         SipGenericHF.__init__(self, body)
         if body != None:
@@ -95,7 +96,7 @@ class SipWWWAuthenticate(SipGenericHF):
     def __str__(self):
         return self.localStr()
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         if not self.parsed:
             return self.body
         if local_addr == None or 'my' not in dir(self.realm):
@@ -120,7 +121,7 @@ class SipWWWAuthenticate(SipGenericHF):
     def getCopy(self):
         if not self.parsed:
             return self.__class__(self.body)
-        cself = self.__class__(realm = self.realm, nonce = self.nonce)
+        cself = self.__class__(realm=self.realm, nonce=self.nonce)
         cself.algorithm = self.algorithm
         cself.qop = self.qop
         cself.opaque = self.opaque
@@ -128,7 +129,7 @@ class SipWWWAuthenticate(SipGenericHF):
             cself.otherparams = self.otherparams[:]
         return cself
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'WWW-Authenticate'
 
     def getRealm(self):
@@ -137,8 +138,8 @@ class SipWWWAuthenticate(SipGenericHF):
     def getNonce(self):
         return self.nonce
 
-    def genAuthHF(self, username, password, method, uri, body = None, qop = None):
-        auth = self.aclass(realm = self.realm, nonce = self.nonce, uri = uri, username = username)
+    def genAuthHF(self, username, password, method, uri, body=None, qop=None):
+        auth = self.aclass(realm=self.realm, nonce=self.nonce, uri=uri, username=username)
         auth.algorithm = self.algorithm
         if self.qop is not None and qop is not None:
             auth.qop = qop

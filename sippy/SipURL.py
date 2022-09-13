@@ -25,6 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sippy.SipConf import SipConf
+
 try:
     from urllib import quote, unquote
 except ImportError:
@@ -37,6 +38,7 @@ RFC3261_USER_UNRESERVED = '&=+$,;?/#'
 RFC3261_MARK = '-_.!~*\'()'
 
 USERNAME_SAFE = RFC3261_USER_UNRESERVED + RFC3261_MARK
+
 
 class SipURL(object):
     scheme = None
@@ -55,9 +57,9 @@ class SipURL(object):
     other = None
     lr = False
 
-    def __init__(self, url = None, username = None, password = None, host = None, port = None, headers = None, \
-      usertype = None, transport = None, ttl = None, maddr = None, method = None, tag = None, other = None, \
-      userparams = None, lr = False, relaxedparser = False, scheme = "sip"):
+    def __init__(self, url=None, username=None, password=None, host=None, port=None, headers=None, \
+                 usertype=None, transport=None, ttl=None, maddr=None, method=None, tag=None, other=None, \
+                 userparams=None, lr=False, relaxedparser=False, scheme="sip"):
         self.original_uri = url
         self.other = []
         self.userparams = []
@@ -170,13 +172,13 @@ class SipURL(object):
                 if len(port) == 0:
                     # Bug on the other side, work around it
                     print('WARNING: non-compliant URI detected, empty port number, ' \
-                      'assuming default: "%s"' % str(self.original_uri))
+                          'assuming default: "%s"' % str(self.original_uri))
                 elif port.find(':') > 0:
                     pparts = port.split(':', 1)
                     if pparts[0] == pparts[1]:
                         # Bug on the other side, work around it
                         print('WARNING: non-compliant URI detected, duplicate port number, ' \
-                          'taking "%s": %s' % (pparts[0], str(self.original_uri)))
+                              'taking "%s": %s' % (pparts[0], str(self.original_uri)))
                         self.port = int(pparts[0])
                     else:
                         raise e
@@ -234,8 +236,9 @@ class SipURL(object):
     def __str__(self):
         return self.localStr()
 
-    def localStr(self, local_addr = None, local_port = None):
-        l = []; w = l.append
+    def localStr(self, local_addr=None, local_port=None):
+        l = [];
+        w = l.append
         w(self.scheme + ':')
         if self.username != None:
             w(quote(self.username, USERNAME_SAFE))
@@ -261,7 +264,8 @@ class SipURL(object):
         return ''.join(l)
 
     def getParams(self):
-        res = []; w = res.append
+        res = [];
+        w = res.append
         if self.usertype != None:
             w('user=%s' % self.usertype)
         for n in ('transport', 'ttl', 'maddr', 'method', 'tag'):
@@ -275,10 +279,10 @@ class SipURL(object):
         return res
 
     def getCopy(self):
-        return SipURL(username = self.username, password = self.password, host = self.host, port = self.port, \
-          headers = self.headers, usertype = self.usertype, transport = self.transport, ttl = self.ttl, \
-          maddr = self.maddr, method = self.method, tag = self.tag, other = list(self.other), \
-          userparams = list(self.userparams), lr = self.lr)
+        return SipURL(username=self.username, password=self.password, host=self.host, port=self.port, \
+                      headers=self.headers, usertype=self.usertype, transport=self.transport, ttl=self.ttl, \
+                      maddr=self.maddr, method=self.method, tag=self.tag, other=list(self.other), \
+                      userparams=list(self.userparams), lr=self.lr)
 
     def getHost(self):
         return self.host
@@ -298,24 +302,25 @@ class SipURL(object):
     def setAddr(self, addr):
         self.host, self.port = addr
 
+
 if __name__ == '__main__':
     import sys
 
     test_set = (('sip:user;par=u%40example.net@example.com', ()), \
-      ('sip:user@example.com?Route=%3Csip:example.com%3E', ()), \
-      ('sip:[2001:db8::10]', ()), \
-      ('sip:[2001:db8::10]:5070', ()), \
-      ('sip:user@example.net;tag=9817--94', ('tag=9817--94',)), \
-      ('sip:alice@atlanta.com;ttl=15;maddr=239.255.255.1', ('ttl=15', 'maddr=239.255.255.1')), \
-      ('sip:alice:secretword@atlanta.com;transport=tcp', ('transport=tcp',)), \
-      ('sip:alice@atlanta.com?subject=project%20x&priority=urgent', ()), \
-      ('sip:+1-212-555-1212:1234@gateway.com;user=phone', ('user=phone',)), \
-      ('sip:atlanta.com;method=REGISTER?to=alice%40atlanta.com', ('method=REGISTER',)), \
-      ('sip:alice;day=tuesday@atlanta.com', ()), \
-      ('sip:+611234567890@ims.mnc000.mcc000.3gppnetwork.org;user=phone;npdi', ('user=phone', 'npdi')), \
-      ('sip:1234#567890@example.com', ()), \
-      ('sip:foo@1.2.3.4:', ()), \
-      ('sip:foo@1.2.3.4:5060:5060', ()))
+                ('sip:user@example.com?Route=%3Csip:example.com%3E', ()), \
+                ('sip:[2001:db8::10]', ()), \
+                ('sip:[2001:db8::10]:5070', ()), \
+                ('sip:user@example.net;tag=9817--94', ('tag=9817--94',)), \
+                ('sip:alice@atlanta.com;ttl=15;maddr=239.255.255.1', ('ttl=15', 'maddr=239.255.255.1')), \
+                ('sip:alice:secretword@atlanta.com;transport=tcp', ('transport=tcp',)), \
+                ('sip:alice@atlanta.com?subject=project%20x&priority=urgent', ()), \
+                ('sip:+1-212-555-1212:1234@gateway.com;user=phone', ('user=phone',)), \
+                ('sip:atlanta.com;method=REGISTER?to=alice%40atlanta.com', ('method=REGISTER',)), \
+                ('sip:alice;day=tuesday@atlanta.com', ()), \
+                ('sip:+611234567890@ims.mnc000.mcc000.3gppnetwork.org;user=phone;npdi', ('user=phone', 'npdi')), \
+                ('sip:1234#567890@example.com', ()), \
+                ('sip:foo@1.2.3.4:', ()), \
+                ('sip:foo@1.2.3.4:5060:5060', ()))
     for u, mp in test_set:
         su = SipURL(u)
         sp = su.getParams()

@@ -27,7 +27,7 @@
 
 from sippy.SdpBody import SdpBody
 
-b_types = {'application/sdp':SdpBody}
+b_types = {'application/sdp': SdpBody}
 
 try:
     # Python < 3
@@ -35,13 +35,14 @@ try:
 except NameError:
     str_types = (str,)
 
+
 class MsgBody(object):
     content = None
     mtype = None
     needs_update = True
     parsed = False
 
-    def __init__(self, content = None, mtype = 'application/sdp', cself = None):
+    def __init__(self, content=None, mtype='application/sdp', cself=None):
         if content != None:
             self.mtype = mtype
             self.content = content
@@ -62,7 +63,7 @@ class MsgBody(object):
     def __str__(self):
         return str(self.content)
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         if type(self.content) in str_types:
             return self.content
         return self.content.localStr(local_addr, local_port)
@@ -73,4 +74,4 @@ class MsgBody(object):
     def getCopy(self):
         if not self.parsed:
             return MsgBody(self.content)
-        return MsgBody(cself = self)
+        return MsgBody(cself=self)

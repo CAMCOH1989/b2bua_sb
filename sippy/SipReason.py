@@ -26,6 +26,7 @@
 
 from sippy.SipGenericHF import SipGenericHF
 
+
 class SipReason(SipGenericHF):
     '''
     Class that implements RFC 3326 Reason header field.
@@ -35,7 +36,7 @@ class SipReason(SipGenericHF):
     cause = None
     reason = None
 
-    def __init__(self, body = None, protocol = None, cause = None, reason = None):
+    def __init__(self, body=None, protocol=None, cause=None, reason=None):
         SipGenericHF.__init__(self, body)
         if body == None:
             self.parsed = True
@@ -52,7 +53,7 @@ class SipReason(SipGenericHF):
                 self.cause = int(rp_value)
             elif rp_name == 'text':
                 self.reason = rp_value.strip('"')
-        assert(self.cause != None)
+        assert (self.cause != None)
         self.parsed = True
 
     def __str__(self):
@@ -65,4 +66,4 @@ class SipReason(SipGenericHF):
     def getCopy(self):
         if not self.parsed:
             return SipReason(self.body)
-        return SipReason(protocol = self.protocol, cause = self.cause, reason = self.reason)
+        return SipReason(protocol=self.protocol, cause=self.cause, reason=self.reason)

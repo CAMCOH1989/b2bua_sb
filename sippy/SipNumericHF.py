@@ -26,10 +26,11 @@
 
 from sippy.SipGenericHF import SipGenericHF
 
+
 class SipNumericHF(SipGenericHF):
     number = None
 
-    def __init__(self, body = None, number = 0):
+    def __init__(self, body=None, number=0):
         SipGenericHF.__init__(self, body)
         if body == None:
             self.parsed = True
@@ -46,8 +47,8 @@ class SipNumericHF(SipGenericHF):
 
     def getCopy(self):
         if not self.parsed:
-            return self.__class__(body = self.body)
-        return self.__class__(number = self.number)
+            return self.__class__(body=self.body)
+        return self.__class__(number=self.number)
 
     def getNum(self):
         return self.number

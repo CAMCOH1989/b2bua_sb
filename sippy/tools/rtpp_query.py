@@ -29,6 +29,7 @@ import sys, getopt
 
 DEFAULT_RTPP_SPATH = 'unix:/var/run/rtpproxy.sock'
 
+
 class command_runner(object):
     responses = None
     commands = None
@@ -38,7 +39,7 @@ class command_runner(object):
     rval = 0
     maxfails = 5
 
-    def __init__(self, rc, commands = None, fin = None, fout = None):
+    def __init__(self, rc, commands=None, fin=None, fout=None):
         self.responses = []
         if commands == None and fin == None:
             raise ValueError('either "commands" or "fin" argument should be non-None')
@@ -84,10 +85,12 @@ class command_runner(object):
         self.rval = 3
         ED2.breakLoop()
 
+
 def usage():
     print('usage: rtpp_query.py [-s rtpp_socket_path] [-S sippy_root_path] [-i infile] ' \
-      '[-o outfile] [-n nworkers] [cmd1 [cmd2]..[cmdN]]')
+          '[-o outfile] [-n nworkers] [cmd1 [cmd2]..[cmdN]]')
     sys.exit(1)
+
 
 if __name__ == '__main__':
     global_config = {}
@@ -118,17 +121,17 @@ if __name__ == '__main__':
             else:
                 file_in = open(fname, 'r')
         elif o == '-o':
-           fname = a.strip()
-           if fname == '-':
-               file_out = sys.stdout
-           else:
-               file_out = open(fname, 'w')
+            fname = a.strip()
+            if fname == '-':
+                file_out = sys.stdout
+            else:
+                file_out = open(fname, 'w')
         elif o == '-b':
-           no_rtpp_version_check = True
+            no_rtpp_version_check = True
         elif o == '-n':
-           nwrks = int(a)
+            nwrks = int(a)
         elif o == '-t':
-           timeout = float(a.strip())
+            timeout = float(a.strip())
 
     if len(args) > 0:
         commands = args
@@ -140,9 +143,9 @@ if __name__ == '__main__':
     from sippy.Time.Timeout import Timeout
     from sippy.Core.EventDispatcher import ED2
 
-    rc = Rtp_proxy_client(global_config, spath = spath, nworkers = nwrks, \
-      no_version_check = no_rtpp_version_check)
-    #commands = ('VF 123456', 'G nsess_created', 'G ncmds_rcvd')
+    rc = Rtp_proxy_client(global_config, spath=spath, nworkers=nwrks, \
+                          no_version_check=no_rtpp_version_check)
+    # commands = ('VF 123456', 'G nsess_created', 'G ncmds_rcvd')
     crun = command_runner(rc, commands, file_in, file_out)
     if timeout != None:
         Timeout(crun.timeout, timeout)

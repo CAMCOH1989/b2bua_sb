@@ -28,13 +28,16 @@ from time import strftime, gmtime, localtime
 import sys
 from os.path import dirname, abspath
 from inspect import getfile, currentframe
+
 currentdir = dirname(abspath(getfile(currentframe())))
 parentdir = dirname(currentdir)
 sys.path.insert(0, parentdir)
 from sippy.Math.recfilter import recfilter
 from sippy.Time.clock_dtime import clock_getdtime, CLOCK_REALTIME, CLOCK_MONOTONIC
+
 sys.path.pop(0)
 from threading import local
+
 
 class MonoGlobals(local):
     realt_flt = None
@@ -45,12 +48,13 @@ class MonoGlobals(local):
         self.monot_max = clock_getdtime(CLOCK_MONOTONIC)
         self.realt_flt = recfilter(0.99, realt - self.monot_max)
 
+
 class MonoTime(object):
     monot = None
     realt = None
     globals = MonoGlobals()
 
-    def __init__(self, s = None, monot = None, realt = None, trust_realt = False):
+    def __init__(self, s=None, monot=None, realt=None, trust_realt=False):
         if s != None:
             parts = s.split('-', 1)
             self.realt = float(parts[0])
@@ -59,6 +63,7 @@ class MonoTime(object):
             else:
                 self.monot = float(parts[1])
             return
+
         if monot == None and realt == None:
             if trust_realt:
                 raise TypeError('MonoTime.__init__: realt could not be None when trust_realt is set')
@@ -69,6 +74,7 @@ class MonoTime(object):
                 self.globals.monot_max = self.monot
             self.realt = self.monot + diff_flt
             return
+
         if monot != None:
             self.monot = monot
             if realt != None:
@@ -79,7 +85,7 @@ class MonoTime(object):
         self.realt = realt
         self.__initFromRealt(trust_realt)
 
-    def __initFromRealt(self, trust_realt = False):
+    def __initFromRealt(self, trust_realt=False):
         self.monot = self.realt - self.globals.realt_flt.lastval
         if not trust_realt and self.monot > self.globals.monot_max:
             monot_now = clock_getdtime(CLOCK_MONOTONIC)
@@ -94,22 +100,24 @@ class MonoTime(object):
         rstr = '%.6f-%.6f' % (self.realt, self.monot)
         return (rstr)
 
-    def ftime(self, base = None):
+    def ftime(self, base=None):
         if base != None:
             realt = base.realt - (base.monot - self.monot)
         else:
             realt = self.realt
         return strftime('%Y-%m-%d %H:%M:%S+00', gmtime(round(realt)))
 
-    def fptime(self, base = None):
+    def fptime(self, base=None):
         if base != None:
             realt = base.realt - (base.monot - self.monot)
         else:
             realt = self.realt
-        return '%s.%.3d' % (strftime('%d %b %H:%M:%S', localtime(realt)), \
-          (realt % 1) * 1000)
+        return '%s.%.3d' % (
+            strftime('%d %b %H:%M:%S', localtime(realt)),
+            (realt % 1) * 1000
+        )
 
-    def frtime(self, base = None):
+    def frtime(self, base=None):
         if base != None:
             realt = base.realt - (base.monot - self.monot)
         else:
@@ -178,14 +186,15 @@ class MonoTime(object):
         return (now - self.monot)
 
     def getOffsetCopy(self, offst):
-        return self.__class__(monot = self.monot + offst, realt = self.realt + offst)
+        return self.__class__(monot=self.monot + offst, realt=self.realt + offst)
 
     def offset(self, offst):
         self.monot += offst
         self.realt += offst
 
     def getCopy(self):
-        return self.__class__(monot = self.monot, realt = self.realt)
+        return self.__class__(monot=self.monot, realt=self.realt)
+
 
 class selftest(object):
     mg1 = None
@@ -200,34 +209,35 @@ class selftest(object):
         self.mg2 = m.globals.realt_flt
 
     def run(self):
-        for x in range (0, 100000):
+        for x in range(0, 100000):
             m1 = MonoTime()
             m2 = MonoTime()
             if x == 0:
                 print(m1, m2)
                 print(m1.ftime(), m2.ftime())
-            #print (m1.getdiff() - m2.getdiff())
+            # print (m1.getdiff() - m2.getdiff())
         print(m1, m2)
         print(m1 < m2, m1 > m2, m1 == m2, m1 <= m2, m1 >= m2, m1 != m2)
         print(m1.ftime(), m2.ftime())
         ms1 = str(m1)
         ms2 = str(m2)
-        m3 = MonoTime(s = ms1)
-        m4 = MonoTime(s = ms2)
+        m3 = MonoTime(s=ms1)
+        m4 = MonoTime(s=ms2)
         print(m3, m4)
         print(m3.ftime(), m4.ftime())
-        m5 = MonoTime(realt = m3.realt)
-        m6 = MonoTime(monot = m4.monot)
+        m5 = MonoTime(realt=m3.realt)
+        m6 = MonoTime(monot=m4.monot)
         print(m5.ftime(), m6.ftime())
         print(m5.globals.realt_flt == m1.globals.realt_flt)
         from threading import Thread
-        t1 = Thread(target = self.run_t1)
-        t2 = Thread(target = self.run_t2)
+        t1 = Thread(target=self.run_t1)
+        t2 = Thread(target=self.run_t2)
         t1.start()
         t2.start()
         t1.join()
         t2.join()
         print(self.mg1 != self.mg2)
+
 
 if __name__ == '__main__':
     selftest().run()

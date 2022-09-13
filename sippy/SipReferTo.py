@@ -26,5 +26,6 @@
 
 from sippy.SipAddressHF import SipAddressHF
 
+
 class SipReferTo(SipAddressHF):
     hf_names = ('refer-to', 'r')

@@ -28,7 +28,8 @@ from sippy.SipAddress import SipAddress
 from sippy.SipRoute import SipRoute
 from sippy.UaStateGeneric import UaStateGeneric
 from sippy.CCEvents import CCEventRing, CCEventConnect, CCEventFail, CCEventRedirect, \
-  CCEventDisconnect, CCEventPreConnect
+    CCEventDisconnect, CCEventPreConnect
+
 
 class UacStateRinging(UaStateGeneric):
     sname = 'Ringing(UAC)'
@@ -42,7 +43,7 @@ class UacStateRinging(UaStateGeneric):
             if self.ua.p1xx_ts == None:
                 self.ua.p1xx_ts = resp.rtime
             self.ua.last_scode = code
-            event = CCEventRing(scode, rtime = resp.rtime, origin = self.ua.origin)
+            event = CCEventRing(scode, rtime=resp.rtime, origin=self.ua.origin)
             for ring_cb in self.ua.ring_cbs:
                 ring_cb(self.ua, resp.rtime, self.ua.origin, code)
             if body != None:
@@ -65,11 +66,11 @@ class UacStateRinging(UaStateGeneric):
             self.ua.routes.reverse()
             if len(self.ua.routes) > 0:
                 if not self.ua.routes[0].getUrl().lr:
-                    self.ua.routes.append(SipRoute(address = SipAddress(url = self.ua.rTarget)))
+                    self.ua.routes.append(SipRoute(address=SipAddress(url=self.ua.rTarget)))
                     self.ua.rTarget = self.ua.routes.pop(0).getUrl()
                     self.ua.rAddr = self.ua.rTarget.getAddr()
                 elif self.ua.outbound_proxy != None:
-                    self.ua.routes.append(SipRoute(address = SipAddress(url = self.ua.rTarget)))
+                    self.ua.routes.append(SipRoute(address=SipAddress(url=self.ua.rTarget)))
                     self.ua.rTarget = self.ua.routes[0].getUrl().getCopy()
                     self.ua.rTarget.lr = False
                     self.ua.rTarget.other = tuple()
@@ -82,18 +83,18 @@ class UacStateRinging(UaStateGeneric):
             if tag == None:
                 print('tag-less 200 OK, disconnecting')
                 scode = (502, 'Bad Gateway')
-                self.ua.equeue.append(CCEventFail(scode, rtime = resp.rtime, origin = self.ua.origin))
+                self.ua.equeue.append(CCEventFail(scode, rtime=resp.rtime, origin=self.ua.origin))
                 if resp.countHFs('contact') > 0:
                     self.ua.rTarget = resp.getHFBody('contact').getUrl().getCopy()
                 self.ua.routes = [x.getCopy() for x in resp.getHFBodys('record-route')]
                 self.ua.routes.reverse()
                 if len(self.ua.routes) > 0:
                     if not self.ua.routes[0].getUrl().lr:
-                        self.ua.routes.append(SipRoute(address = SipAddress(url = self.ua.rTarget)))
+                        self.ua.routes.append(SipRoute(address=SipAddress(url=self.ua.rTarget)))
                         self.ua.rTarget = self.ua.routes.pop(0).getUrl()
                         self.ua.rAddr = self.ua.rTarget.getAddr()
                     elif self.ua.outbound_proxy != None:
-                        self.ua.routes.append(SipRoute(address = SipAddress(url = self.ua.rTarget)))
+                        self.ua.routes.append(SipRoute(address=SipAddress(url=self.ua.rTarget)))
                         self.ua.rTarget = self.ua.routes[0].getUrl().getCopy()
                         self.ua.rTarget.lr = False
                         self.ua.rTarget.other = tuple()
@@ -105,17 +106,18 @@ class UacStateRinging(UaStateGeneric):
                 req = self.ua.genRequest('BYE')
                 self.ua.lCSeq += 1
                 self.ua.global_config['_sip_tm'].newTransaction(req, \
-                  laddress = self.ua.source_address, compact = self.ua.compact_sip)
+                                                                laddress=self.ua.source_address,
+                                                                compact=self.ua.compact_sip)
                 return (UaStateFailed, self.ua.fail_cbs, resp.rtime, self.ua.origin, scode[0])
             self.ua.rUri.setTag(tag)
             if not self.ua.late_media or body == None:
                 self.ua.late_media = False
-                event = CCEventConnect(scode, rtime = resp.rtime, origin = self.ua.origin)
+                event = CCEventConnect(scode, rtime=resp.rtime, origin=self.ua.origin)
                 self.ua.startCreditTimer(resp.rtime)
                 self.ua.connect_ts = resp.rtime
                 rval = (UaStateConnected, self.ua.conn_cbs, resp.rtime, self.ua.origin)
             else:
-                event = CCEventPreConnect(scode, rtime = resp.rtime, origin = self.ua.origin)
+                event = CCEventPreConnect(scode, rtime=resp.rtime, origin=self.ua.origin)
                 tr.uack = True
                 self.ua.pending_tr = tr
                 rval = (UaStateConnected,)
@@ -131,13 +133,13 @@ class UacStateRinging(UaStateGeneric):
             return rval
         if code in (301, 302) and resp.countHFs('contact') > 0:
             scode = (code, reason, body, (resp.getHFBody('contact').getUri().getCopy(),))
-            self.ua.equeue.append(CCEventRedirect(scode, rtime = resp.rtime, origin = self.ua.origin))
+            self.ua.equeue.append(CCEventRedirect(scode, rtime=resp.rtime, origin=self.ua.origin))
         elif code == 300 and resp.countHFs('contact') > 0:
             redirects = tuple(x.getUri().getCopy() for x in resp.getHFBodys('contact'))
             scode = (code, reason, body, redirects)
-            self.ua.equeue.append(CCEventRedirect(scode, rtime = resp.rtime, origin = self.ua.origin))
+            self.ua.equeue.append(CCEventRedirect(scode, rtime=resp.rtime, origin=self.ua.origin))
         else:
-            event = CCEventFail(scode, rtime = resp.rtime, origin = self.ua.origin)
+            event = CCEventFail(scode, rtime=resp.rtime, origin=self.ua.origin)
             try:
                 event.reason = resp.getHFBody('reason')
             except:
@@ -148,14 +150,15 @@ class UacStateRinging(UaStateGeneric):
 
     def recvEvent(self, event):
         if isinstance(event, CCEventFail) or isinstance(event, CCEventRedirect) or isinstance(event, CCEventDisconnect):
-            self.ua.global_config['_sip_tm'].cancelTransaction(self.ua.tr, reason = event.reason)
+            self.ua.global_config['_sip_tm'].cancelTransaction(self.ua.tr, reason=event.reason)
             if self.ua.expire_timer != None:
                 self.ua.expire_timer.cancel()
                 self.ua.expire_timer = None
             self.ua.disconnect_ts = event.rtime
             return (UacStateCancelling, self.ua.disc_cbs, event.rtime, event.origin, self.ua.last_scode)
-        #print 'wrong event %s in the Ringing state' % event
+        # print 'wrong event %s in the Ringing state' % event
         return None
+
 
 if not 'UaStateFailed' in globals():
     from sippy.UaStateFailed import UaStateFailed

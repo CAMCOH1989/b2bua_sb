@@ -26,10 +26,11 @@
 
 from sippy.SipFrom import SipFrom
 
+
 class SipPAssertedIdentity(SipFrom):
     hf_names = ('p-asserted-identity',)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'P-Asserted-Identity'
 
     def getAddr(self):

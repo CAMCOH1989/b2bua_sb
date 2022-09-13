@@ -25,14 +25,17 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sippy.SipURL import SipURL
+
 try:
     from string import maketrans
+
     needquotes = lambda x, y: not x.encode().translate(y).isalnum()
 except ImportError:
     maketrans = str.maketrans
     needquotes = lambda x, y: not x.translate(y).isalnum()
 
-def findquotes(s, pos = 1):
+
+def findquotes(s, pos=1):
     rval = []
     while True:
         pos1 = s.find('"', pos)
@@ -43,6 +46,7 @@ def findquotes(s, pos = 1):
             rval.append(pos1)
     return rval
 
+
 class SipAddress(object):
     name = None
     url = None
@@ -51,8 +55,8 @@ class SipAddress(object):
     hadbrace = None
     transtable = maketrans('-.!%*_+`\'~', 'a' * 10)
 
-    def __init__(self, address = None, name = None, url = None, params = None,
-      hadbrace = None, params_order = None, relaxedparser = False):
+    def __init__(self, address=None, name=None, url=None, params=None,
+                 hadbrace=None, params_order=None, relaxedparser=False):
         self.params = {}
         self.params_order = []
         self.hadbrace = True
@@ -69,7 +73,7 @@ class SipAddress(object):
         # simple 'sip:foo' case
         if address.lower().startswith('sip:') and address.find('<') == -1:
             parts = address.split(';', 1)
-            self.url = SipURL(parts[0], relaxedparser = relaxedparser)
+            self.url = SipURL(parts[0], relaxedparser=relaxedparser)
             if len(parts) == 2:
                 for l in parts[1].split(';'):
                     if not l:
@@ -109,7 +113,7 @@ class SipAddress(object):
             self.name, url = address.split('<', 1)
             self.name = self.name.strip()
         url, paramstring = url.split('>', 1)
-        self.url = SipURL(url, relaxedparser = relaxedparser)
+        self.url = SipURL(url, relaxedparser=relaxedparser)
         paramstring = paramstring.strip()
         if paramstring:
             for l in paramstring.split(';'):
@@ -129,7 +133,7 @@ class SipAddress(object):
     def __str__(self):
         return self.localStr()
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         if self.hadbrace:
             od = '<'
             cd = '>'
@@ -154,13 +158,13 @@ class SipAddress(object):
         return s
 
     def getCopy(self):
-        return SipAddress(name = self.name, url = self.url.getCopy(), params = self.params.copy(), \
-          hadbrace = self.hadbrace, params_order = self.params_order[:])
+        return SipAddress(name=self.name, url=self.url.getCopy(), params=self.params.copy(), \
+                          hadbrace=self.hadbrace, params_order=self.params_order[:])
 
     def getParam(self, name):
         return self.params.get(name, None)
 
-    def setParam(self, name, value = None):
+    def setParam(self, name, value=None):
         self.params[name] = value
         if self.params_order.count(name) == 0:
             self.params_order.append(name)

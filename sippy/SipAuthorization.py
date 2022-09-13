@@ -26,18 +26,19 @@
 
 from sippy.SipGenericHF import SipGenericHF
 from sippy.Security.SipNonce import HashOracle, DGST_MD5, DGST_MD5SESS, \
-  DGST_SHA256, DGST_SHA256SESS, DGST_SHA512, DGST_SHA512SESS
+    DGST_SHA256, DGST_SHA256SESS, DGST_SHA512, DGST_SHA512SESS
 
 from hashlib import md5, sha256
 from time import time
 
-from Crypto.Hash import SHA512
+from Cryptodome.Hash import SHA512
+
 
 class sha512_256(object):
     d = None
 
     def __init__(self):
-        self.d = SHA512.new(truncate = '256')
+        self.d = SHA512.new(truncate='256')
 
     def update(self, arg):
         self.d.update(arg)
@@ -48,9 +49,11 @@ class sha512_256(object):
     def hexdigest(self):
         return self.d.hexdigest()
 
-_HASH_FUNC = {None:(md5, DGST_MD5), 'MD5':(md5, DGST_MD5), 'MD5-sess':(md5, DGST_MD5SESS), \
-  'SHA-256':(sha256, DGST_SHA256), 'SHA-256-sess':(sha256, DGST_SHA256SESS), \
-  'SHA-512-256':(sha512_256, DGST_SHA512), 'SHA-512-256-sess':(sha512_256, DGST_SHA512SESS)}
+
+_HASH_FUNC = {None: (md5, DGST_MD5), 'MD5': (md5, DGST_MD5), 'MD5-sess': (md5, DGST_MD5SESS), \
+              'SHA-256': (sha256, DGST_SHA256), 'SHA-256-sess': (sha256, DGST_SHA256SESS), \
+              'SHA-512-256': (sha512_256, DGST_SHA512), 'SHA-512-256-sess': (sha512_256, DGST_SHA512SESS)}
+
 
 class SipAuthorization(SipGenericHF):
     hf_names = ('authorization',)
@@ -66,8 +69,8 @@ class SipAuthorization(SipGenericHF):
     otherparams = None
     ho = HashOracle()
 
-    def __init__(self, body = None, username = None, uri = None, realm = None, nonce = None, response = None, \
-                 cself = None):
+    def __init__(self, body=None, username=None, uri=None, realm=None, nonce=None, response=None, \
+                 cself=None):
         SipGenericHF.__init__(self, body)
         if body != None:
             return
@@ -119,9 +122,9 @@ class SipAuthorization(SipGenericHF):
 
     def genAuthResponse(self, password, method, body):
         HA1 = DigestCalcHA1(self.algorithm, self.username, self.realm, password, \
-          self.nonce, self.cnonce)
+                            self.nonce, self.cnonce)
         self.response = DigestCalcResponse(self.algorithm, HA1, self.nonce, \
-          self.nc, self.cnonce, self.qop, method, self.uri, body)
+                                           self.nc, self.cnonce, self.qop, method, self.uri, body)
 
     def __str__(self):
         if not self.parsed:
@@ -139,9 +142,9 @@ class SipAuthorization(SipGenericHF):
     def getCopy(self):
         if not self.parsed:
             return self.__class__(self.body)
-        return self.__class__(cself = self)
+        return self.__class__(cself=self)
 
-    def verify(self, password, method, body = None):
+    def verify(self, password, method, body=None):
         if not self.parsed:
             self.parse()
         HA1 = DigestCalcHA1(self.algorithm, self.username, self.realm, password, self.nonce, self.cnonce)
@@ -158,17 +161,20 @@ class SipAuthorization(SipGenericHF):
         if not self.ho.validate_challenge(self.nonce, (algmask,)):
             return False
         response = DigestCalcResponse(self.algorithm, HA1, self.nonce, self.nc, \
-          self.cnonce, self.qop, method, self.uri, body)
+                                      self.cnonce, self.qop, method, self.uri, body)
         return response == self.response
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'Authorization'
+
 
 def IsDigestAlgSupported(algorithm):
     return (algorithm in _HASH_FUNC)
 
+
 def NameList2AlgMask(nlist):
     return tuple([_HASH_FUNC[x][1] for x in nlist])
+
 
 def DigestCalcHA1(pszAlg, pszUserName, pszRealm, pszPassword, pszNonce, pszCNonce):
     delim = ':'.encode()
@@ -189,6 +195,7 @@ def DigestCalcHA1(pszAlg, pszUserName, pszRealm, pszPassword, pszNonce, pszCNonc
         m.update(pszCNonce.encode())
         HA1 = m.hexdigest().encode()
     return HA1
+
 
 def DigestCalcResponse(pszAlg, HA1, pszNonce, pszNonceCount, pszCNonce, pszQop, pszMethod, pszDigestUri, pszHEntity):
     delim = ':'.encode()

@@ -25,14 +25,15 @@
 
 from sippy.SipCSeq import SipCSeq
 
+
 class SipRAck(SipCSeq):
     hf_names = ('rack',)
     rseq = None
 
-    def __init__(self, body = None, rseq = None, cseq = None, method = None):
+    def __init__(self, body=None, rseq=None, cseq=None, method=None):
         if body == None:
             self.rseq = rseq
-            SipCSeq.__init__(self, cseq = cseq, method = method)
+            SipCSeq.__init__(self, cseq=cseq, method=method)
             return
         SipCSeq.__init__(self, body)
 
@@ -45,9 +46,9 @@ class SipRAck(SipCSeq):
     def getCopy(self):
         if not self.parsed:
             return SipRAck(self.body)
-        return SipRAck(rseq = self.rseq, cseq = self.cseq, method = self.method)
+        return SipRAck(rseq=self.rseq, cseq=self.cseq, method=self.method)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'RAck'
 
     def getRSeq(self):
@@ -59,8 +60,9 @@ class SipRAck(SipCSeq):
             return self.body
         return '%d %d %s' % (self.rseq, self.cseq, self.method)
 
+
 if __name__ == '__main__':
-    ra1 = SipRAck(body = '5 10 INVITE')
+    ra1 = SipRAck(body='5 10 INVITE')
     ra1.parse()
     print(ra1.rseq, ra1.cseq, ra1.method)
     ra1.cseq = 100

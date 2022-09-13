@@ -25,11 +25,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class SipGenericHF(object):
-    hf_names = None	# Set this in each subclass!!
+    hf_names = None  # Set this in each subclass!!
     body = None
     parsed = False
 
-    def __init__(self, body, name = None):
+    def __init__(self, body, name=None):
         self.body = body
         if name != None:
             self.hf_names = (name.lower(),)
@@ -37,7 +37,7 @@ class SipGenericHF(object):
     def parse(self):
         pass
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         return self.__str__()
 
     def __str__(self):
@@ -46,5 +46,5 @@ class SipGenericHF(object):
     def getCopy(self):
         return self.__class__(self.body)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return name.capitalize()

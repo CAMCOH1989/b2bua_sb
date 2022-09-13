@@ -38,6 +38,7 @@ from time import time
 from hashlib import md5
 from random import random
 
+
 def getnretrans(first_rert, timeout):
     if first_rert <= 0:
         raise ValueError('getnretrans(%f, %f)' % (first_rert, timeout))
@@ -50,6 +51,7 @@ def getnretrans(first_rert, timeout):
         n += 1
     return n
 
+
 class Rtp_proxy_pending_req(object):
     retransmits = 0
     next_retr = None
@@ -61,11 +63,12 @@ class Rtp_proxy_pending_req(object):
     callback_parameters = None
 
     def __init__(self, next_retr, nretr, timer, command, result_callback, \
-      callback_parameters):
+                 callback_parameters):
         self.stime = MonoTime()
         self.next_retr, self.triesleft, self.timer, self.command, self.result_callback, \
-          self.callback_parameters = next_retr, nretr, timer, command, \
-          result_callback, callback_parameters
+        self.callback_parameters = next_retr, nretr, timer, command, \
+                                   result_callback, callback_parameters
+
 
 class Rtp_proxy_client_udp(Rtp_proxy_client_net):
     pending_requests = None
@@ -78,8 +81,8 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
     pdelay_out_max = 0.0
     sock_type = SOCK_DGRAM
 
-    def __init__(self, global_config, address, bind_address = None, family = AF_INET, nworkers = None):
-        #print('Rtp_proxy_client_udp(family=%s)' % family)
+    def __init__(self, global_config, address, bind_address=None, family=AF_INET, nworkers=None):
+        # print('Rtp_proxy_client_udp(family=%s)' % family)
         self.address = self.getdestbyaddr(address, family)
         self.is_local = False
         self.uopts = Udp_server_opts(bind_address, self.process_reply, family)
@@ -93,7 +96,7 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
         self.global_config = global_config
         self.delay_flt = recfilter(0.95, 0.25)
 
-    def send_command(self, command, result_callback = None, *callback_parameters):
+    def send_command(self, command, result_callback=None, *callback_parameters):
         entropy = str(random()) + str(time())
         cookie = md5(entropy.encode()).hexdigest()
         next_retr = self.delay_flt.lastval * 4.0
@@ -116,13 +119,13 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
         command = '%s %s' % (cookie, command)
         timer = Timeout(self.retransmit, next_retr, 1, cookie)
         preq = Rtp_proxy_pending_req(next_retr, nretr - 1, timer, command, \
-          result_callback, callback_parameters)
+                                     result_callback, callback_parameters)
         self.worker.send_to(command, self.address)
         self.pending_requests[cookie] = preq
 
     def retransmit(self, cookie):
         preq = self.pending_requests[cookie]
-        #print('command to %s timeout %s cookie %s triesleft %d' % (str(self.address), preq.command, cookie, preq.triesleft))
+        # print('command to %s timeout %s cookie %s triesleft %d' % (str(self.address), preq.command, cookie, preq.triesleft))
         if preq.triesleft <= 0 or self.worker == None:
             del self.pending_requests[cookie]
             self.go_offline()
@@ -144,7 +147,7 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
             cookie, result = data.split(None, 1)
         except:
             print('Rtp_proxy_client_udp.process_reply(): invalid response from %s: "%s"' % \
-              (str(address), data))
+                  (str(address), data))
             return
         cookie = cookie.decode()
         preq = self.pending_requests.pop(cookie, None)
@@ -157,8 +160,8 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
             # is very wrong. Fail immediately.
             rtime_fix = MonoTime()
             raise AssertionError('cookie=%s: MonoTime stale/went' \
-              ' backwards (%f <= %f, now=%f)' % (cookie, rtime.monot, \
-              preq.stime.monot, rtime_fix.monot))
+                                 ' backwards (%f <= %f, now=%f)' % (cookie, rtime.monot, \
+                                                                    preq.stime.monot, rtime_fix.monot))
         if preq.result_callback != None:
             result = result.decode()
             preq.result_callback(result.strip(), *preq.callback_parameters)
@@ -172,14 +175,14 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
         # not work very well if the packet loss goes to more than 30-40%.
         if preq.retransmits == 0:
             self.delay_flt.apply(rtime - preq.stime)
-            #print('Rtp_proxy_client_udp.process_reply(): delay %f' % (rtime - preq.stime))
+            # print('Rtp_proxy_client_udp.process_reply(): delay %f' % (rtime - preq.stime))
 
-    def reconnect(self, address, bind_address = None):
-        #print('reconnect', address)
+    def reconnect(self, address, bind_address=None):
+        # print('reconnect', address)
         address = self.getdestbyaddr(address, self.uopts.family)
         self.rtpp_class._reconnect(self, address, bind_address)
 
-    def _reconnect(self, address, bind_address = None):
+    def _reconnect(self, address, bind_address=None):
         self.address = address
         if bind_address != self.uopts.laddress:
             self.uopts.laddress = bind_address
@@ -194,7 +197,9 @@ class Rtp_proxy_client_udp(Rtp_proxy_client_net):
     def get_rtpc_delay(self):
         return self.delay_flt.lastval
 
+
 from sippy.Core.EventDispatcher import ED2
+
 
 class selftest(object):
 
@@ -220,6 +225,7 @@ class selftest(object):
         rtpc.send_command('V', self.gotreply)
         ED2.loop()
         rtpc.shutdown()
+
 
 if __name__ == '__main__':
     selftest().run()

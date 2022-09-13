@@ -2,30 +2,33 @@ import unittest
 
 from sippy.SdpBody import SdpBody
 
+
 # TODO Rename test names so each one represents clearly what it is
 # testing for. 
+
 
 class TestSdpBodyFunctions(unittest.TestCase):
 
     def test_localStr(self):
         got = SdpBody(sdp_multi_stream).localStr('1.2.3.4', 12345)
-        want = sdp_multi_stream.replace('\n','\r\n')
+        want = sdp_multi_stream.replace('\n', '\r\n')
         self.assertEquals(want, got)
 
     def test_str_override_multiple_stremas(self):
         got = SdpBody(sdp_multi_stream)
-        want = sdp_multi_stream.replace('\n','\r\n')
+        want = sdp_multi_stream.replace('\n', '\r\n')
         self.assertEquals(want, str(got))
 
     def test_str_override_h323_sdp(self):
         got = SdpBody(sdp_h323)
-        want = sdp_h323.replace('\n','\r\n')
+        want = sdp_h323.replace('\n', '\r\n')
         self.assertEquals(want, str(got))
 
     def test_str_override_single_audio(self):
         got = SdpBody(sdp_single_audio)
-        want = sdp_single_audio.replace('\n','\r\n')
+        want = sdp_single_audio.replace('\n', '\r\n')
         self.assertEquals(want, str(got))
+
 
 if __name__ == '__main__':
     unittest.main()
@@ -78,7 +81,6 @@ a=setup:active
 a=connection:new
 """
 
-
 sdp_h323 = """v=0
 o=H.323 45678 901234 IN IP4 192.168.1.2
 s=H.323 SIP Call
@@ -91,7 +93,6 @@ m=application 12349 udp wb
 m=control 49234 H323 mc
 c=IN IP4 134.134.157.81
 """
-
 
 sdp_single_audio = """v=0
 o=- 12333 12333 IN IP4 192.168.1.42

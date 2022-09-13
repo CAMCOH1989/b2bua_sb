@@ -27,6 +27,7 @@
 from sippy.SipVia import SipVia
 from sippy.SipHeader import SipHeader
 
+
 class StatefulProxy:
     global_config = None
     destination = None
@@ -40,7 +41,7 @@ class StatefulProxy:
         via0 = SipVia()
         via0.genBranch()
         via1 = req.getHF('via')
-        req.insertHeaderBefore(via1, SipHeader(name = 'via', body = via0))
+        req.insertHeaderBefore(via1, SipHeader(name='via', body=via0))
         req.setTarget(self.destination)
         print(req)
         self.global_config['_sip_tm'].newTransaction(req, self.recvResponse)

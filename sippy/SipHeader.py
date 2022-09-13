@@ -71,11 +71,12 @@ for hf_type in _hf_types:
     for hf_name in hf_type.hf_names:
         hf_types[hf_name] = hf_type
 
+
 class SipHeader(object):
     name = None
     body = None
 
-    def __init__(self, s = None, name = None, body = None, bodys = None, fixname = False):
+    def __init__(self, s=None, name=None, body=None, bodys=None, fixname=False):
         if s != None:
             name, bodys = [x.strip() for x in s.split(':', 1)]
         if name != None:
@@ -98,9 +99,9 @@ class SipHeader(object):
     def __str__(self):
         return str(self.body.getCanName(self.name)) + ': ' + str(self.body)
 
-    def localStr(self, local_addr = None, local_port = None, compact = False):
+    def localStr(self, local_addr=None, local_port=None, compact=False):
         return str(self.body.getCanName(self.name, compact)) + ': ' + \
-          self.body.localStr(local_addr, local_port)
+               self.body.localStr(local_addr, local_port)
 
     def getBody(self):
         if not self.body.parsed:
@@ -111,5 +112,5 @@ class SipHeader(object):
         return self.body.getCopy()
 
     def getCopy(self):
-        cself = self.__class__(name = self.name, body = self.body.getCopy())
-        return cself 
+        cself = self.__class__(name=self.name, body=self.body.getCopy())
+        return cself

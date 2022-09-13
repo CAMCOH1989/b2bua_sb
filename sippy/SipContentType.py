@@ -26,6 +26,7 @@
 
 from sippy.SipGenericHF import SipGenericHF
 
+
 class SipContentType(SipGenericHF):
     hf_names = ('content-type', 'c')
 
@@ -33,7 +34,7 @@ class SipContentType(SipGenericHF):
         SipGenericHF.__init__(self, body)
         self.parsed = True
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 'c'
         return 'Content-Type'

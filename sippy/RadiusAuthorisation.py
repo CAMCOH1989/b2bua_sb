@@ -29,27 +29,29 @@ from sippy.Radius_client import Radius_client
 from time import time
 from functools import reduce
 
+
 class RadiusAuthorisation(Radius_client):
-    def do_auth(self, username, caller, callee, sip_cid, remote_ip, res_cb, \
-      realm = None, nonce = None, uri = None, response = None, extra_attributes = None):
+    def do_auth(self, username, caller, callee, sip_cid, remote_ip, res_cb,
+                realm=None, nonce=None, uri=None, response=None, extra_attributes=None):
         sip_cid = str(sip_cid)
         attributes = None
         if None not in (realm, nonce, uri, response):
             attributes = [('User-Name', username), ('Digest-Realm', realm), \
-              ('Digest-Nonce', nonce), ('Digest-Method', 'INVITE'), ('Digest-URI', uri), \
-              ('Digest-Algorithm', 'MD5'), ('Digest-User-Name', username), ('Digest-Response', response)]
+                          ('Digest-Nonce', nonce), ('Digest-Method', 'INVITE'), ('Digest-URI', uri), \
+                          ('Digest-Algorithm', 'MD5'), ('Digest-User-Name', username), ('Digest-Response', response)]
         else:
             attributes = [('User-Name', remote_ip), ('Password', 'cisco')]
         if caller == None:
             caller = ''
         attributes.extend((('Calling-Station-Id', caller), ('Called-Station-Id', callee), \
-          ('call-id', sip_cid), ('h323-remote-address', remote_ip), ('h323-session-protocol', 'sipv2')))
+                           ('call-id', sip_cid), ('h323-remote-address', remote_ip),
+                           ('h323-session-protocol', 'sipv2')))
         if extra_attributes != None:
             for a, v in extra_attributes:
                 attributes.append((a, v))
-        message = 'sending AAA request:\n' 
+        message = 'sending AAA request:\n'
         message += reduce(lambda x, y: x + y, ['%-32s = \'%s\'\n' % (x[0], str(x[1])) for x in attributes])
-        self.global_config['_sip_logger'].write(message, call_id = sip_cid)
+        self.global_config['_sip_logger'].write(message, call_id=sip_cid)
         Radius_client.do_auth(self, attributes, self._process_result, res_cb, sip_cid, time())
 
     def _process_result(self, results, res_cb, sip_cid, btime):
@@ -64,5 +66,5 @@ class RadiusAuthorisation(Radius_client):
                 message += reduce(lambda x, y: x + y, ['%-32s = \'%s\'\n' % x for x in results[0]])
         else:
             message = 'Error sending AAA request (delay is %.3f)\n' % delay
-        self.global_config['_sip_logger'].write(message, call_id = sip_cid)
+        self.global_config['_sip_logger'].write(message, call_id=sip_cid)
         res_cb(results)

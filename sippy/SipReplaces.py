@@ -26,6 +26,7 @@
 
 from sippy.SipGenericHF import SipGenericHF
 
+
 class SipReplaces(SipGenericHF):
     hf_names = ('replaces',)
     call_id = None
@@ -34,8 +35,8 @@ class SipReplaces(SipGenericHF):
     early_only = False
     params = None
 
-    def __init__(self, body = None, call_id = None, from_tag = None, to_tag = None, \
-      early_only = False, params = None):
+    def __init__(self, body=None, call_id=None, from_tag=None, to_tag=None, \
+                 early_only=False, params=None):
         SipGenericHF.__init__(self, body)
         if body != None:
             return
@@ -76,5 +77,5 @@ class SipReplaces(SipGenericHF):
     def getCopy(self):
         if not self.parsed:
             return SipReplaces(self.body)
-        return SipReplaces(call_id = self.call_id, from_tag = self.from_tag, to_tag = self.to_tag, \
-          early_only = self.early_only, params = self.params)
+        return SipReplaces(call_id=self.call_id, from_tag=self.from_tag, to_tag=self.to_tag, \
+                           early_only=self.early_only, params=self.params)

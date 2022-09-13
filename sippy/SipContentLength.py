@@ -26,10 +26,11 @@
 
 from sippy.SipNumericHF import SipNumericHF
 
+
 class SipContentLength(SipNumericHF):
     hf_names = ('content-length', 'l')
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 'l'
         return 'Content-Length'

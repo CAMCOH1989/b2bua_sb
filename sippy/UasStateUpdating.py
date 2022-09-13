@@ -29,6 +29,7 @@ from sippy.SipAddress import SipAddress
 from sippy.UaStateGeneric import UaStateGeneric
 from sippy.CCEvents import CCEventDisconnect, CCEventRing, CCEventConnect, CCEventFail, CCEventRedirect
 
+
 class UasStateUpdating(UaStateGeneric):
     sname = 'Updating(UAS)'
     connected = True
@@ -36,14 +37,16 @@ class UasStateUpdating(UaStateGeneric):
     def recvRequest(self, req):
         if req.getMethod() == 'INVITE':
             self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(491, \
-              'Request Pending', server = self.ua.local_ua), lossemul = self.ua.uas_lossemul)
+                                                                          'Request Pending', server=self.ua.local_ua),
+                                                          lossemul=self.ua.uas_lossemul)
             return None
         elif req.getMethod() == 'BYE':
             self.ua.sendUasResponse(487, 'Request Terminated')
             self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(200, 'OK', \
-              server = self.ua.local_ua), lossemul = self.ua.uas_lossemul)
-            #print 'BYE received in the Updating state, going to the Disconnected state'
-            event = CCEventDisconnect(rtime = req.rtime, origin = self.ua.origin)
+                                                                          server=self.ua.local_ua),
+                                                          lossemul=self.ua.uas_lossemul)
+            # print 'BYE received in the Updating state, going to the Disconnected state'
+            event = CCEventDisconnect(rtime=req.rtime, origin=self.ua.origin)
             try:
                 event.reason = req.getHFBody('reason')
             except:
@@ -55,17 +58,19 @@ class UasStateUpdating(UaStateGeneric):
         elif req.getMethod() == 'REFER':
             if req.countHFs('refer-to') == 0:
                 self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(400, 'Bad Request',
-                  server = self.ua.local_ua), lossemul = self.ua.uas_lossemul)
+                                                                              server=self.ua.local_ua),
+                                                              lossemul=self.ua.uas_lossemul)
                 return None
             self.ua.sendUasResponse(487, 'Request Terminated')
             self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(202, 'Accepted', \
-              server = self.ua.local_ua), lossemul = self.ua.uas_lossemul)
+                                                                          server=self.ua.local_ua),
+                                                          lossemul=self.ua.uas_lossemul)
             also = req.getHFBody('refer-to').getCopy()
-            self.ua.equeue.append(CCEventDisconnect(also, rtime = req.rtime, origin = self.ua.origin))
+            self.ua.equeue.append(CCEventDisconnect(also, rtime=req.rtime, origin=self.ua.origin))
             self.ua.cancelCreditTimer()
             self.ua.disconnect_ts = req.rtime
             return (UaStateDisconnected, self.ua.disc_cbs, req.rtime, self.ua.origin)
-        #print 'wrong request %s in the state Updating' % req.getMethod()
+        # print 'wrong request %s in the state Updating' % req.getMethod()
         return None
 
     def recvEvent(self, event):
@@ -94,7 +99,7 @@ class UasStateUpdating(UaStateGeneric):
             if scode == None:
                 scode = (500, 'Failed', None, None)
             elif scode[3] != None:
-                contacts = tuple(SipContact(address = x) for x in scode[3])
+                contacts = tuple(SipContact(address=x) for x in scode[3])
             self.ua.sendUasResponse(scode[0], scode[1], scode[2], contacts)
             return (UaStateConnected,)
         elif isinstance(event, CCEventFail):
@@ -105,36 +110,38 @@ class UasStateUpdating(UaStateGeneric):
                 extra_headers = (event.warning,)
             else:
                 extra_headers = None
-            self.ua.sendUasResponse(scode[0], scode[1], reason_rfc3326 = event.reason, \
-              extra_headers = extra_headers)
+            self.ua.sendUasResponse(scode[0], scode[1], reason_rfc3326=event.reason, \
+                                    extra_headers=extra_headers)
             return (UaStateConnected,)
         elif isinstance(event, CCEventDisconnect):
-            self.ua.sendUasResponse(487, 'Request Terminated', reason_rfc3326 = event.reason)
-            req = self.ua.genRequest('BYE', reason = event.reason)
+            self.ua.sendUasResponse(487, 'Request Terminated', reason_rfc3326=event.reason)
+            req = self.ua.genRequest('BYE', reason=event.reason)
             self.ua.lCSeq += 1
             self.ua.global_config['_sip_tm'].newTransaction(req, \
-              laddress = self.ua.source_address, compact = self.ua.compact_sip)
+                                                            laddress=self.ua.source_address,
+                                                            compact=self.ua.compact_sip)
             self.ua.cancelCreditTimer()
             self.ua.disconnect_ts = event.rtime
             return (UaStateDisconnected, self.ua.disc_cbs, event.rtime, event.origin)
-        #print 'wrong event %s in the Updating state' % event
+        # print 'wrong event %s in the Updating state' % event
         return None
 
     def cancel(self, rtime, req):
         req = self.ua.genRequest('BYE')
         self.ua.lCSeq += 1
         self.ua.global_config['_sip_tm'].newTransaction(req, \
-          laddress = self.ua.source_address, compact = self.ua.compact_sip)
+                                                        laddress=self.ua.source_address, compact=self.ua.compact_sip)
         self.ua.cancelCreditTimer()
         self.ua.disconnect_ts = rtime
         self.ua.changeState((UaStateDisconnected, self.ua.disc_cbs, rtime, self.ua.origin))
-        event = CCEventDisconnect(rtime = rtime, origin = self.ua.origin)
+        event = CCEventDisconnect(rtime=rtime, origin=self.ua.origin)
         if req != None:
             try:
-                event.reason = req.getHFBody('reason')     
+                event.reason = req.getHFBody('reason')
             except:
                 pass
         self.ua.emitEvent(event)
+
 
 if not 'UaStateConnected' in globals():
     from sippy.UaStateConnected import UaStateConnected

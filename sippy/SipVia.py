@@ -31,6 +31,7 @@ from sippy.SipGenericHF import SipGenericHF
 from sippy.SipConf import SipConf
 from sippy.ESipHeaderCSV import ESipHeaderCSV
 
+
 class SipVia(SipGenericHF):
     hf_names = ('via', 'v')
 
@@ -39,7 +40,7 @@ class SipVia(SipGenericHF):
     port = None
     params = None
 
-    def __init__(self, body = None, sipver = None, hostname = None, port = None, params = None):
+    def __init__(self, body=None, sipver=None, hostname=None, port=None, params=None):
         if body != None and body.find(',') > -1:
             raise ESipHeaderCSV(None, body.split(','))
         SipGenericHF.__init__(self, body)
@@ -95,7 +96,7 @@ class SipVia(SipGenericHF):
     def __str__(self):
         return self.localStr()
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         if not self.parsed:
             return self.body
         if local_addr != None and 'my' in dir(self.hostname):
@@ -116,7 +117,7 @@ class SipVia(SipGenericHF):
     def getCopy(self):
         if not self.parsed:
             return SipVia(self.body)
-        return SipVia(sipver = self.sipver, hostname = self.hostname, port = self.port, params = self.params.copy())
+        return SipVia(sipver=self.sipver, hostname=self.hostname, port=self.port, params=self.params.copy())
 
     def genBranch(self):
         salt = str((random() * 1000000000) + time())
@@ -125,7 +126,7 @@ class SipVia(SipGenericHF):
     def getBranch(self):
         return self.params.get('branch', None)
 
-    def setParam(self, name, value = None):
+    def setParam(self, name, value=None):
         self.params[name] = value
 
     def getAddr(self):
@@ -146,10 +147,11 @@ class SipVia(SipGenericHF):
                 rport = SipConf.default_port
         return (self.params.get('received', self.getAddr()[0]), rport)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 'v'
         return 'Via'
+
 
 def _unit_test():
     via1 = 'SIP/2.0/UDP 203.193.xx.xx;branch=z9hG4bK2dd1.1102f3e2.0'

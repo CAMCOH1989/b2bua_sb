@@ -30,15 +30,18 @@ from datetime import datetime
 from heapq import heappush, heappop, heapify
 from threading import Lock
 from random import random
-import sys, traceback, signal
+import sys
+import traceback
+import signal
+
 if sys.version_info[0] < 3:
     from thread import get_ident
 else:
     from _thread import get_ident
 from sippy.Time.MonoTime import MonoTime
 from sippy.Core.Exceptions import dump_exception, StdException
-
 from elperiodic.ElPeriodic import ElPeriodic
+
 
 class EventListener(object):
     etime = None
@@ -60,8 +63,8 @@ class EventListener(object):
         self.cleanup()
 
     def cleanup(self):
-        self.cb_func = None
-        self.cb_params = None
+        self.callback_function = None
+        self.callback_params = None
         self.cb_kw_args = None
         self.ed = None
         self.randomize_runs = None
@@ -76,21 +79,22 @@ class EventListener(object):
         if self.ed.my_ident != get_ident():
             print(datetime.now(), 'EventDispatcher2: Timer.go() from wrong thread, expect Bad Stuff[tm] to happen')
             print('-' * 70)
-            traceback.print_stack(file = sys.stdout)
+            traceback.print_stack(file=sys.stdout)
             print('-' * 70)
             sys.stdout.flush()
         if not self.abs_time:
             if self.randomize_runs != None:
-                ival = self.randomize_runs(self.ival)
+                interval = self.randomize_runs(self.interval)
             else:
-                ival = self.ival
-            self.etime = self.itime.getOffsetCopy(ival)
+                interval = self.interval
+            self.etime = self.itime.getOffsetCopy(interval)
         else:
-            self.etime = self.ival
-            self.ival = None
-            self.nticks = 1
+            self.etime = self.interval
+            self.interval = None
+            self.number_of_ticks = 1
         heappush(self.ed.tlisteners, self)
         return
+
 
 class Singleton(object):
     '''Use to create a singleton'''
@@ -115,6 +119,7 @@ class Singleton(object):
     def __sinit__(self, *args, **kwds):
         pass
 
+
 class EventDispatcher2(Singleton):
     tlisteners = None
     slisteners = None
@@ -129,7 +134,7 @@ class EventDispatcher2(Singleton):
     elp = None
     bands = None
 
-    def __init__(self, freq = 100.0):
+    def __init__(self, freq=100.0):
         EventDispatcher2.state_lock.acquire()
         if EventDispatcher2.ed_inum != 0:
             EventDispatcher2.state_lock.release()
@@ -144,56 +149,56 @@ class EventDispatcher2(Singleton):
         self.my_ident = get_ident()
         self.elp = ElPeriodic(freq)
         self.elp.CFT_enable(signal.SIGURG)
-        self.bands = [(freq, 0),]
+        self.bands = [(freq, 0), ]
 
     def signal(self, signum, frame):
         self.signals_pending.append(signum)
 
-    def regTimer(self, timeout_cb, ival, nticks = 1, abs_time = False, *cb_params):
+    def regTimer(self, timeout_cb, interval, number_of_ticks=1, abs_time=False, *callback_params):
         self.last_ts = MonoTime()
-        if nticks == 0:
+        if number_of_ticks == 0:
             return
-        if abs_time and not isinstance(ival, MonoTime):
-            raise TypeError('ival is not MonoTime')
+        if abs_time and not isinstance(interval, MonoTime):
+            raise TypeError('interval is not MonoTime')
         el = EventListener()
         el.itime = self.last_ts.getCopy()
-        el.cb_func = timeout_cb
-        el.ival = ival
-        el.nticks = nticks
+        el.callback_function = timeout_cb
+        el.interval = interval
+        el.number_of_ticks = number_of_ticks
         el.abs_time = abs_time
-        el.cb_params = cb_params
+        el.callback_params = callback_params
         el.ed = self
         return el
 
     def dispatchTimers(self):
         while len(self.tlisteners) != 0:
             el = self.tlisteners[0]
-            if el.cb_func != None and el.etime > self.last_ts:
+            if el.callback_function != None and el.etime > self.last_ts:
                 # We've finished
                 return
             el = heappop(self.tlisteners)
-            if el.cb_func == None:
+            if el.callback_function == None:
                 # Skip any already removed timers
                 self.twasted -= 1
                 continue
-            if el.nticks == -1 or el.nticks > 1:
+            if el.number_of_ticks == -1 or el.number_of_ticks > 1:
                 # Re-schedule periodic timer
-                if el.nticks > 1:
-                    el.nticks -= 1
+                if el.number_of_ticks > 1:
+                    el.number_of_ticks -= 1
                 if el.randomize_runs != None:
-                    ival = el.randomize_runs(el.ival)
+                    interval = el.randomize_runs(el.interval)
                 else:
-                    ival = el.ival
-                el.etime.offset(ival)
+                    interval = el.interval
+                el.etime.offset(interval)
                 heappush(self.tlisteners, el)
                 cleanup = False
             else:
                 cleanup = True
             try:
                 if not el.cb_with_ts:
-                    el.cb_func(*el.cb_params)
+                    el.callback_function(*el.callback_params)
                 else:
-                    el.cb_func(self.last_ts, *el.cb_params)
+                    el.callback_function(self.last_ts, *el.callback_params)
             except Exception as ex:
                 if isinstance(ex, SystemExit):
                     raise
@@ -203,13 +208,13 @@ class EventDispatcher2(Singleton):
             if cleanup:
                 el.cleanup()
 
-    def regSignal(self, signum, signal_cb, *cb_params, **cb_kw_args):
+    def regSignal(self, signum, signal_cb, *callback_params, **cb_kw_args):
         sl = EventListener()
         if len([x for x in self.slisteners if x.signum == signum]) == 0:
             signal.signal(signum, self.signal)
         sl.signum = signum
-        sl.cb_func = signal_cb
-        sl.cb_params = cb_params
+        sl.callback_function = signal_cb
+        sl.callback_params = callback_params
         sl.cb_kw_args = cb_kw_args
         self.slisteners.append(sl)
         return sl
@@ -227,7 +232,7 @@ class EventDispatcher2(Singleton):
                 if sl not in self.slisteners:
                     continue
                 try:
-                    sl.cb_func(*sl.cb_params, **sl.cb_kw_args)
+                    sl.callback_function(*sl.callback_params, **sl.cb_kw_args)
                 except Exception as ex:
                     if isinstance(ex, SystemExit):
                         raise
@@ -235,20 +240,20 @@ class EventDispatcher2(Singleton):
                 if self.endloop:
                     return
 
-    def dispatchThreadCallback(self, thread_cb, cb_params):
+    def dispatchThreadCallback(self, thread_cb, callback_params):
         try:
-            thread_cb(*cb_params)
+            thread_cb(*callback_params)
         except Exception as ex:
             if isinstance(ex, SystemExit):
                 raise
             dump_exception('EventDispatcher2: unhandled exception when processing from-thread-call')
-        #print('dispatchThreadCallback dispatched', thread_cb, cb_params)
+        # print('dispatchThreadCallback dispatched', thread_cb, callback_params)
 
-    def callFromThread(self, thread_cb, *cb_params):
-        self.elp.call_from_thread(self.dispatchThreadCallback, thread_cb, cb_params)
-        #print('EventDispatcher2.callFromThread completed', str(self), thread_cb, cb_params)
+    def callFromThread(self, thread_cb, *callback_params):
+        self.elp.call_from_thread(self.dispatchThreadCallback, thread_cb, callback_params)
+        # print('EventDispatcher2.callFromThread completed', str(self), thread_cb, callback_params)
 
-    def loop(self, timeout = None, freq = None):
+    def loop(self, timeout=None, freq=None):
         if freq != None and self.bands[0][0] != freq:
             for fb in self.bands:
                 if fb[0] == freq:
@@ -263,6 +268,7 @@ class EventDispatcher2(Singleton):
         if timeout != None:
             etime = self.last_ts.getOffsetCopy(timeout)
         while True:
+            # print("LOOOPING", self.__dict__, MonoTime())
             if len(self.signals_pending) > 0:
                 self.dispatchSignals()
                 if self.endloop:
@@ -274,7 +280,7 @@ class EventDispatcher2(Singleton):
                 return
             if self.twasted * 2 > len(self.tlisteners):
                 # Clean-up removed timers when their share becomes more than 50%
-                self.tlisteners = [x for x in self.tlisteners if x.cb_func != None]
+                self.tlisteners = [x for x in self.tlisteners if x.callback_function != None]
                 heapify(self.tlisteners)
                 self.twasted = 0
             if (timeout != None and self.last_ts > etime) or self.endloop:
@@ -285,9 +291,13 @@ class EventDispatcher2(Singleton):
 
     def breakLoop(self):
         self.endloop = True
-        #print('breakLoop')
-        #import traceback
-        #import sys
-        #traceback.print_stack(file = sys.stdout)
+
+def do_smth():
+    print("LOLOLOLOLOLOLO")
+
 
 ED2 = EventDispatcher2()
+
+if __name__ == "__main__":
+    ED2.regTimer(do_smth, 3)
+    ED2.loop()

@@ -26,11 +26,14 @@
 from threading import local
 from math import exp, pi
 
+
 def calc_f_coef(Fs, Fc):
     if Fs < Fc * 2.0:
-        raise ValueError('The cutoff frequency (%f) should be less ' \
-          'than half of the sampling rate (%f)' %  (Fc, Fs))
+        raise ValueError(
+            'The cutoff frequency (%f) should be less than half of the sampling rate (%f)' % (Fc, Fs)
+        )
     return exp(-2.0 * pi * Fc / Fs)
+
 
 class recfilter(object):
     lastval = 0.0
@@ -38,7 +41,7 @@ class recfilter(object):
     b = None
 
     def __init__(self, fcoef, initval):
-        #print 'recfilter::init()'
+        # print 'recfilter::init()'
         self.lastval = float(initval)
         self.a = 1.0 - float(fcoef)
         self.b = float(fcoef)
@@ -47,7 +50,8 @@ class recfilter(object):
         self.lastval = self.a * float(x) + self.b * self.lastval
         return self.lastval
 
+
 class recfilter_ts(local, recfilter):
     def __init__(self, *args):
-        #print 'recfilter_ts::init()'
+        # print 'recfilter_ts::init()'
         recfilter.__init__(self, *args)

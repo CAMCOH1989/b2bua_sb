@@ -33,9 +33,10 @@ import datetime, time
 import traceback, sys, os
 from select import poll, POLLIN, POLLOUT
 
-from Sippy.Core.EventDispatcher import ED2
+from Core.EventDispatcher import ED2
 
 MAX_WORKERS = 5
+
 
 class Worker(iksemel.Stream):
     def __init__(self, owner, _id):
@@ -44,9 +45,9 @@ class Worker(iksemel.Stream):
         self.__reconnect = True
         self.__reconnect_count = 0
         iksemel.Stream.__init__(self)
-        rx_thr = threading.Thread(target = self.run_rx)
+        rx_thr = threading.Thread(target=self.run_rx)
         rx_thr.setDaemon(True)
-        tx_thr = threading.Thread(target = self.run_tx)
+        tx_thr = threading.Thread(target=self.run_tx)
         tx_thr.setDaemon(True)
         rx_thr.start()
         tx_thr.start()
@@ -82,10 +83,10 @@ class Worker(iksemel.Stream):
                     continue
                 self.recv()
             except:
-                print datetime.datetime.now(), 'XMPP_server: unhandled exception when receiving incoming data'
-                print '-' * 70
-                traceback.print_exc(file = sys.stdout)
-                print '-' * 70
+                print(datetime.datetime.now(), 'XMPP_server: unhandled exception when receiving incoming data')
+                print('-' * 70)
+                traceback.print_exc(file=sys.stdout)
+                print('-' * 70)
                 sys.stdout.flush()
                 self.__reconnect = True
                 self.__owner._wi_available.acquire()
@@ -93,15 +94,14 @@ class Worker(iksemel.Stream):
                 self.__owner._wi_available.release()
                 time.sleep(0.1)
 
-
     def run_tx(self):
         try:
             self.__run_tx()
         except:
-            print datetime.datetime.now(), 'XMPP_server: unhandled exception when processing outgoing data'
-            print '-' * 70
-            traceback.print_exc(file = sys.stdout)
-            print '-' * 70
+            print(datetime.datetime.now(), 'XMPP_server: unhandled exception when processing outgoing data')
+            print('-' * 70)
+            traceback.print_exc(file=sys.stdout)
+            print('-' * 70)
             sys.stdout.flush()
 
     def __run_tx(self):
@@ -111,7 +111,7 @@ class Worker(iksemel.Stream):
             if self.__owner._shutdown:
                 return
             if self.__reconnect:
-                buf = '' # throw away unsent data
+                buf = ''  # throw away unsent data
             if len(buf) == 0:
                 data, addr = None, None
                 if not self.__reconnect:
@@ -126,7 +126,7 @@ class Worker(iksemel.Stream):
                         data, addr, laddress = self.__owner._wi.pop(0)
                     self.__owner._wi_available.release()
                 if self.__reconnect:
-                    #print self, self.__reconnect_count
+                    # print(self, self.__reconnect_count
                     if not first_time:
                         time.sleep(0.1)
                         try:
@@ -142,7 +142,7 @@ class Worker(iksemel.Stream):
                     except iksemel.StreamError:
                         continue
                     except:
-                        traceback.print_exc(file = sys.stdout)
+                        traceback.print_exc(file=sys.stdout)
                         sys.stdout.flush()
                         continue
                     self.__reconnect = False
@@ -151,10 +151,10 @@ class Worker(iksemel.Stream):
                     continue
                 dst_addr, dst_port = addr
                 buf = '<outgoing_packet dst_addr="%s" dst_port="%s" ' \
-                                'src_addr="%s" src_port="%s" ' \
-                                'msg="%s"/>' % (dst_addr, dst_port, 
-                                                laddress[0], laddress[1], 
-                                                base64.b64encode(data))
+                      'src_addr="%s" src_port="%s" ' \
+                      'msg="%s"/>' % (dst_addr, dst_port,
+                                      laddress[0], laddress[1],
+                                      base64.b64encode(data))
             if self.__owner._shutdown:
                 os.close(self.fileno())
                 return
@@ -171,6 +171,7 @@ class Worker(iksemel.Stream):
                 # wait for reconnect
                 self.__reconnect = True
 
+
 class XMPP_server_opts(object):
     laddress = None
     data_callback = None
@@ -181,6 +182,7 @@ class XMPP_server_opts(object):
 
     def getCopy(self):
         return self.__class__(self.laddress, self.data_callback)
+
 
 class _XMPP_server(object):
     _uopts = None
@@ -198,6 +200,7 @@ class _XMPP_server(object):
     def shutdown(self):
         self.real_server.shutdown()
         self.real_server = None
+
 
 class XMPP_server(object):
     uopts = None
@@ -225,10 +228,10 @@ class XMPP_server(object):
             try:
                 self.uopts.data_callback(data, address, lserver, rtime)
             except:
-                print datetime.datetime.now(), 'XMPP_server: unhandled exception when receiving incoming data'
-                print '-' * 70
-                traceback.print_exc(file = sys.stdout)
-                print '-' * 70
+                print(datetime.datetime.now(), 'XMPP_server: unhandled exception when receiving incoming data'
+                print('-' * 70
+                traceback.print_exc(file=sys.stdout)
+                print('-' * 70
                 sys.stdout.flush()
 
     def send_to(self, data, address):

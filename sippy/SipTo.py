@@ -26,11 +26,12 @@
 
 from sippy.SipFrom import SipFrom
 
+
 class SipTo(SipFrom):
     hf_names = ('to', 't')
     relaxedparser = True
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 't'
         return 'To'

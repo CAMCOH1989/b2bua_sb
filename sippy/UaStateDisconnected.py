@@ -27,6 +27,7 @@
 from sippy.Time.Timeout import Timeout
 from sippy.UaStateGeneric import UaStateGeneric
 
+
 class UaStateDisconnected(UaStateGeneric):
     sname = 'Disconnected'
 
@@ -47,6 +48,7 @@ class UaStateDisconnected(UaStateGeneric):
     def goDead(self):
         #print 'Time in Disconnected state expired, going to the Dead state'
         self.ua.changeState((UaStateDead,))
+
 
 if not 'UaStateDead' in globals():
     from sippy.UaStateDead import UaStateDead

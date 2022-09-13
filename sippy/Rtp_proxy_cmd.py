@@ -26,11 +26,12 @@
 
 from __future__ import print_function
 
-def extract_to_next_token(s, match, invert = False):
+
+def extract_to_next_token(s, match, invert=False):
     i = 0
     while i < len(s):
         if (not invert and s[i] not in match) or \
-          (invert and s[i] in match):
+                (invert and s[i] in match):
             break
         i += 1
     if i == 0:
@@ -38,6 +39,7 @@ def extract_to_next_token(s, match, invert = False):
     if i == len(s):
         return (s, '')
     return (s[:i], s[i:])
+
 
 class UpdateLookupOpts(object):
     destination_ip = None
@@ -52,7 +54,7 @@ class UpdateLookupOpts(object):
     notify_tag = None
     subargs = None
 
-    def __init__(self, s = None, *params):
+    def __init__(self, s=None, *params):
         if s == None:
             self.destination_ip, self.local_ip, self.codecs, self.otherparams = params
             return
@@ -78,7 +80,7 @@ class UpdateLookupOpts(object):
                 if len(val) > 0:
                     self.otherparams += val
 
-    def getstr(self, call_id, swaptags = False):
+    def getstr(self, call_id, swaptags=False):
         s = ''
         if self.destination_ip != None:
             s += 'R%s' % (self.destination_ip,)
@@ -113,6 +115,7 @@ class UpdateLookupOpts(object):
         if self.subargs != None:
             s = '%s && %s' % (s, self.subargs)
         return s
+
 
 class Rtp_proxy_cmd(object):
     type = None
@@ -169,6 +172,7 @@ class Rtp_proxy_cmd(object):
             s = '%s %s' % (s, self.args)
         return s
 
+
 class Rtpp_stats(object):
     spookyprefix = ''
     verbose = False
@@ -213,10 +217,11 @@ class Rtpp_stats(object):
                 rval += ' %s' % str(self.__dict__[aname])
         return rval
 
+
 if __name__ == '__main__':
     for cmd in ('G nsess_created total_duration', 'Gv nsess_created total_duration', \
-      'UL10.10.0.21 bca22c94cda32ed233ccfc7485f0a01c@10.10.0.19-1-0 10.10.0.19 19492 496c1f695ec7bbe26cd334b0454f56e9 tcp:%%CC_SELF%%:22223 .sock%20r%20m18482_1%201',
-      'UL10.10.0.21 call-id 10.10.0.19 19492 496c1f695ec7bbe26cd334b0454f56e9 tcp:%%CC_SELF%%:22223 .sock%20r%20m18482_1%201 && M0:0'):
+                'UL10.10.0.21 bca22c94cda32ed233ccfc7485f0a01c@10.10.0.19-1-0 10.10.0.19 19492 496c1f695ec7bbe26cd334b0454f56e9 tcp:%%CC_SELF%%:22223 .sock%20r%20m18482_1%201',
+                'UL10.10.0.21 call-id 10.10.0.19 19492 496c1f695ec7bbe26cd334b0454f56e9 tcp:%%CC_SELF%%:22223 .sock%20r%20m18482_1%201 && M0:0'):
         rc = Rtp_proxy_cmd(cmd)
         print(rc)
         print(rc.args)

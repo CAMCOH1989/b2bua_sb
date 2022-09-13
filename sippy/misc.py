@@ -26,9 +26,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, sys, socket
+import os
+import sys
+import socket
 
-def daemonize(logfile = None):
+
+def daemonize(logfile=None):
     # Fork once
     if os.fork() != 0:
         os._exit(0)
@@ -49,7 +52,8 @@ def daemonize(logfile = None):
     if logfile == None:
         os.close(fd)
 
-def local4remote(lookup_address, family = socket.AF_INET):
+
+def local4remote(lookup_address, family=socket.AF_INET):
     skt = socket.socket(family, socket.SOCK_DGRAM)
     ai = socket.getaddrinfo(lookup_address, None, family)
     if family == socket.AF_INET:

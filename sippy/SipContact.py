@@ -31,20 +31,21 @@ from sippy.SipAddress import SipAddress
 from sippy.SipURL import SipURL
 from sippy.ESipHeaderIgnore import ESipHeaderIgnore
 
+
 class SipContact(SipAddressHF):
     hf_names = ('contact', 'm')
     asterisk = False
 
-    def __init__(self, body = None, address = None):
+    def __init__(self, body=None, address=None):
         if body == '*':
             SipGenericHF.__init__(self, body)
             self.asterisk = True
             return
         SipAddressHF.__init__(self, body, address)
         if body == None and address == None:
-            self.address = SipAddress(name = 'Anonymous', url = SipURL(host = SipConf.my_address, port = SipConf.my_port))
+            self.address = SipAddress(name='Anonymous', url=SipURL(host=SipConf.my_address, port=SipConf.my_port))
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 'm'
         return 'Contact'

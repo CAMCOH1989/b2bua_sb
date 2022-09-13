@@ -29,6 +29,7 @@ from signal import signal, SIG_IGN, SIG_DFL
 from sippy.Core.Exceptions import dump_exception
 from sippy.Core.EventDispatcher import ED2
 
+
 class Signal(object):
     callback = None
     parameters = None
@@ -60,36 +61,42 @@ class Signal(object):
         self.parameters = None
         self.previous_handler = None
 
-def log_signal(signum, sip_logger, signal_cb, cb_params):
-    sip_logger.write('Dispatching signal %d to handler %s' % (signum, str(signal_cb)))
-    return signal_cb(*cb_params)
 
-def LogSignal(sip_logger, signum, signal_cb, *cb_params):
+def log_signal(signum, sip_logger, signal_cb, callback_params):
+    sip_logger.write('Dispatching signal %d to handler %s' % (signum, str(signal_cb)))
+    return signal_cb(*callback_params)
+
+
+def LogSignal(sip_logger, signum, signal_cb, *callback_params):
     sip_logger.write('Registering signal %d to handler %s' % (signum, str(signal_cb)))
-    return Signal(signum, log_signal, signum, sip_logger, signal_cb, cb_params)
+    return Signal(signum, log_signal, signum, sip_logger, signal_cb, callback_params)
+
 
 if __name__ == '__main__':
     from signal import SIGHUP, SIGURG, SIGTERM
     from os import kill, getpid
 
+
     def test(arguments):
         arguments['test'] = not arguments['test']
         ED2.breakLoop()
 
-    arguments = {'test':False}
+
+    arguments = {'test': False}
     s = Signal(SIGURG, test, arguments)
     kill(getpid(), SIGURG)
     ED2.loop()
-    assert(arguments['test'])
+    assert (arguments['test'])
     s.cancel()
     Signal(SIGHUP, test, arguments)
     kill(getpid(), SIGURG)
     kill(getpid(), SIGHUP)
     ED2.loop()
-    assert(not arguments['test'])
+    assert (not arguments['test'])
     from sippy.SipLogger import SipLogger
+
     sip_logger = SipLogger('Signal::selftest')
     LogSignal(sip_logger, SIGTERM, test, arguments)
     kill(getpid(), SIGTERM)
     ED2.loop()
-    assert(arguments['test'])
+    assert (arguments['test'])

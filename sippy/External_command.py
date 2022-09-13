@@ -35,6 +35,7 @@ from sippy.Core.EventDispatcher import ED2
 
 _MAX_WORKERS = 20
 
+
 class _Worker(Thread):
     command = None
     master = None
@@ -50,8 +51,8 @@ class _Worker(Thread):
         need_close_fds = True
         if platform == 'win32':
             need_close_fds = False
-        pipe = Popen(self.command, shell = False, stdin = PIPE, \
-          stdout = PIPE, stderr = PIPE, close_fds = need_close_fds)
+        pipe = Popen(self.command, shell=False, stdin=PIPE, \
+                     stdout=PIPE, stderr=PIPE, close_fds=need_close_fds)
         while True:
             self.master.work_available.acquire()
             while len(self.master.work) == 0:
@@ -90,6 +91,7 @@ class _Worker(Thread):
             wi.result_callback = None
             wi.callback_parameters = None
 
+
 class Work_item(object):
     cancelled = False
     cancelled_lock = None
@@ -115,11 +117,12 @@ class Work_item(object):
         self.cancelled_lock.release()
         return status
 
+
 class External_command(object):
     work_available = None
     work = None
 
-    def __init__(self, command, max_workers = _MAX_WORKERS):
+    def __init__(self, command, max_workers=_MAX_WORKERS):
         self.work_available = Condition()
         self.work = []
         for i in range(0, max_workers):
@@ -147,11 +150,13 @@ class External_command(object):
                 raise
             dump_exception('External_command: unhandled exception in external command results callback')
 
+
 if __name__ == '__main__':
     from sys import exit
     from time import sleep
 
     test_data = (b'foo', b'bar')
+
 
     def results_received(results):
         global external_command
@@ -162,6 +167,7 @@ if __name__ == '__main__':
             print(test_data, results)
             exit(1)
         ED2.breakLoop()
+
 
     external_command = External_command('/bin/cat')
     external_command.process_command(test_data, results_received)

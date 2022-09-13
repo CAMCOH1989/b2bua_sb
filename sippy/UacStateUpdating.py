@@ -27,6 +27,7 @@
 from sippy.UaStateGeneric import UaStateGeneric
 from sippy.CCEvents import CCEventDisconnect, CCEventRing, CCEventConnect, CCEventFail, CCEventRedirect
 
+
 class UacStateUpdating(UaStateGeneric):
     sname = 'Updating(UAC)'
     triedauth = False
@@ -34,13 +35,14 @@ class UacStateUpdating(UaStateGeneric):
 
     def recvRequest(self, req):
         if req.getMethod() == 'INVITE':
-            self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(491, 'Request Pending', server = self.ua.local_ua))
+            self.ua.global_config['_sip_tm'].sendResponse(
+                req.genResponse(491, 'Request Pending', server=self.ua.local_ua))
             return None
         elif req.getMethod() == 'BYE':
             self.ua.global_config['_sip_tm'].cancelTransaction(self.ua.tr)
-            self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(200, 'OK', server = self.ua.local_ua))
-            #print 'BYE received in the Updating state, going to the Disconnected state'
-            event = CCEventDisconnect(rtime = req.rtime, origin = self.ua.origin)
+            self.ua.global_config['_sip_tm'].sendResponse(req.genResponse(200, 'OK', server=self.ua.local_ua))
+            # print 'BYE received in the Updating state, going to the Disconnected state'
+            event = CCEventDisconnect(rtime=req.rtime, origin=self.ua.origin)
             try:
                 event.reason = req.getHFBody('reason')
             except:
@@ -49,7 +51,7 @@ class UacStateUpdating(UaStateGeneric):
             self.ua.cancelCreditTimer()
             self.ua.disconnect_ts = req.rtime
             return (UaStateDisconnected, self.ua.disc_cbs, req.rtime, self.ua.origin)
-        #print 'wrong request %s in the state Updating' % req.getMethod()
+        # print 'wrong request %s in the state Updating' % req.getMethod()
         return None
 
     def recvResponse(self, resp, tr):
@@ -57,19 +59,19 @@ class UacStateUpdating(UaStateGeneric):
         code, reason = resp.getSCode()
         scode = (code, reason, body)
         if code < 200:
-            self.ua.equeue.append(CCEventRing(scode, rtime = resp.rtime, origin = self.ua.origin))
+            self.ua.equeue.append(CCEventRing(scode, rtime=resp.rtime, origin=self.ua.origin))
             return None
         if code >= 200 and code < 300:
-            event = CCEventConnect(scode, rtime = resp.rtime, origin = self.ua.origin)
+            event = CCEventConnect(scode, rtime=resp.rtime, origin=self.ua.origin)
             if body != None:
                 if self.ua.on_remote_sdp_change != None:
-                    cb_func = lambda x: self.ua.delayed_remote_sdp_update(event, x)
+                    callback_function = lambda x: self.ua.delayed_remote_sdp_update(event, x)
                     try:
-                        self.ua.on_remote_sdp_change(body, cb_func, en_excpt = True)
+                        self.ua.on_remote_sdp_change(body, callback_function, en_excpt=True)
                     except Exception as e:
-                        event = CCEventFail((502, 'Bad Gateway'), rtime = event.rtime)
+                        event = CCEventFail((502, 'Bad Gateway'), rtime=event.rtime)
                         event.setWarning('Malformed SDP Body received from ' \
-                          'downstream: "%s"' % str(e))
+                                         'downstream: "%s"' % str(e))
                         return self.updateFailed(event)
                     return (UaStateConnected,)
                 else:
@@ -80,13 +82,13 @@ class UacStateUpdating(UaStateGeneric):
             return (UaStateConnected,)
         if code in (301, 302) and resp.countHFs('contact') > 0:
             scode = (code, reason, body, (resp.getHFBody('contact').getUri().getCopy(),))
-            event = CCEventRedirect(scode, rtime = resp.rtime, origin = self.ua.origin)
+            event = CCEventRedirect(scode, rtime=resp.rtime, origin=self.ua.origin)
         elif code == 300 and resp.countHFs('contact') > 0:
             redirects = tuple(x.getUri().getCopy() for x in resp.getHFBodys('contact'))
             scode = (code, reason, body, redirects)
-            event = CCEventRedirect(scode, rtime = resp.rtime, origin = self.ua.origin)
+            event = CCEventRedirect(scode, rtime=resp.rtime, origin=self.ua.origin)
         else:
-            event = CCEventFail(scode, rtime = resp.rtime, origin = self.ua.origin)
+            event = CCEventFail(scode, rtime=resp.rtime, origin=self.ua.origin)
             try:
                 event.reason = resp.getHFBody('reason')
             except:
@@ -105,29 +107,31 @@ class UacStateUpdating(UaStateGeneric):
 
     def updateFailed(self, event):
         self.ua.equeue.append(event)
-        req = self.ua.genRequest('BYE', reason = event.reason)
+        req = self.ua.genRequest('BYE', reason=event.reason)
         self.ua.lCSeq += 1
         self.ua.global_config['_sip_tm'].newTransaction(req, \
-          laddress = self.ua.source_address, compact = self.ua.compact_sip)
+                                                        laddress=self.ua.source_address, compact=self.ua.compact_sip)
         self.ua.cancelCreditTimer()
         self.ua.disconnect_ts = event.rtime
-        self.ua.equeue.append(CCEventDisconnect(rtime = event.rtime, \
-          origin = self.ua.origin))
+        self.ua.equeue.append(CCEventDisconnect(rtime=event.rtime, \
+                                                origin=self.ua.origin))
         return (UaStateDisconnected, self.ua.disc_cbs, event.rtime, \
-          event.origin)
+                event.origin)
 
     def recvEvent(self, event):
         if isinstance(event, CCEventDisconnect) or isinstance(event, CCEventFail) or isinstance(event, CCEventRedirect):
             self.ua.global_config['_sip_tm'].cancelTransaction(self.ua.tr)
-            req = self.ua.genRequest('BYE', reason = event.reason)
+            req = self.ua.genRequest('BYE', reason=event.reason)
             self.ua.lCSeq += 1
             self.ua.global_config['_sip_tm'].newTransaction(req, \
-              laddress = self.ua.source_address, compact = self.ua.compact_sip)
+                                                            laddress=self.ua.source_address,
+                                                            compact=self.ua.compact_sip)
             self.ua.cancelCreditTimer()
             self.ua.disconnect_ts = event.rtime
             return (UaStateDisconnected, self.ua.disc_cbs, event.rtime, event.origin)
-        #print 'wrong event %s in the Updating state' % event
+        # print 'wrong event %s in the Updating state' % event
         return None
+
 
 if not 'UaStateConnected' in globals():
     from sippy.UaStateConnected import UaStateConnected

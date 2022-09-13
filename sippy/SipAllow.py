@@ -28,11 +28,12 @@ from sippy.SipGenericHF import SipGenericHF
 
 from functools import reduce
 
+
 class SipAllow(SipGenericHF):
     hf_names = ('allow',)
     methods = None
 
-    def __init__(self, body = None, methods = None):
+    def __init__(self, body=None, methods=None):
         SipGenericHF.__init__(self, body)
         if body == None:
             self.parsed = True
@@ -50,7 +51,7 @@ class SipAllow(SipGenericHF):
     def getCopy(self):
         if not self.parsed:
             return SipAllow(self.body)
-        return SipAllow(methods = self.methods)
+        return SipAllow(methods=self.methods)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'Allow'

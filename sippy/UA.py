@@ -28,15 +28,14 @@ from sippy.SipHeader import SipHeader
 from sippy.UasStateIdle import UasStateIdle
 from sippy.UacStateIdle import UacStateIdle
 from sippy.SipRequest import SipRequest
-from sippy.SipContentType import SipContentType
 from sippy.SipMaxForwards import SipMaxForwards
-from sippy.CCEvents import CCEventTry, CCEventFail, CCEventDisconnect, CCEventInfo
-from sippy.MsgBody import MsgBody
+from sippy.CCEvents import CCEventTry, CCEventFail, CCEventDisconnect
 from hashlib import md5
 from random import random
 from time import time
 from sippy.Time.MonoTime import MonoTime
 from sippy.Time.Timeout import TimeoutAbsMono
+
 
 class UA(object):
     global_config = None
@@ -103,9 +102,10 @@ class UA(object):
     compact_sip = False
     uas_lossemul = 0
 
-    def __init__(self, global_config, event_cb = None, username = None, password = None, nh_address = None, credit_time = None, \
-      conn_cbs = None, disc_cbs = None, fail_cbs = None, ring_cbs = None, dead_cbs = None, ltag = None, extra_headers = None, \
-      expire_time = None, no_progress_time = None):
+    def __init__(self, global_config, event_cb=None, username=None, password=None, nh_address=None, credit_time=None, \
+                 conn_cbs=None, disc_cbs=None, fail_cbs=None, ring_cbs=None, dead_cbs=None, ltag=None,
+                 extra_headers=None, \
+                 expire_time=None, no_progress_time=None):
         self.global_config = global_config
         self.event_cb = event_cb
         self.equeue = []
@@ -144,16 +144,16 @@ class UA(object):
         self.extra_headers = extra_headers
         self.expire_time = expire_time
         self.no_progress_time = no_progress_time
-        #print self.username, self.password
+        # print self.username, self.password
 
     def recvRequest(self, req, sip_t):
-        #print 'Received request %s in state %s instance %s' % (req.getMethod(), self.state, self)
-        #print self.rCSeq, req.getHFBody('cseq').getCSeqNum()
+        # print 'Received request %s in state %s instance %s' % (req.getMethod(), self.state, self)
+        # print self.rCSeq, req.getHFBody('cseq').getCSeqNum()
         sip_t.compact = self.compact_sip
         if self.remote_ua == None:
             self.update_ua(req)
         if self.rCSeq != None and self.rCSeq >= req.getHFBody('cseq').getCSeqNum():
-            return (req.genResponse(500, 'Server Internal Error', server = self.local_ua), None, None)
+            return (req.genResponse(500, 'Server Internal Error', server=self.local_ua), None, None)
         self.rCSeq = req.getHFBody('cseq').getCSeqNum()
         if self.state == None:
             if req.getMethod() == 'INVITE':
@@ -171,10 +171,10 @@ class UA(object):
 
     def processChallenge(self, resp, cseq, ch_hfname, auth_hfname):
         if self.username == None or self.password == None or \
-          self.reqs[cseq].countHFs(auth_hfname) != 0:
+                self.reqs[cseq].countHFs(auth_hfname) != 0:
             return False
         for challenge in resp.getHFBodys(ch_hfname):
-            #print(self.processChallenge, cseq, challenge, challenge.algorithm)
+            # print(self.processChallenge, cseq, challenge, challenge.algorithm)
             if self.auth_enalgs != None and challenge.algorithm not in self.auth_enalgs:
                 continue
             supported, qop = challenge.supportedAlgorithm()
@@ -185,7 +185,8 @@ class UA(object):
         req = self.genRequest('INVITE', self.lSDP, (challenge, qop))
         self.lCSeq += 1
         self.tr = self.global_config['_sip_tm'].newTransaction(req, self.recvResponse, \
-          laddress = self.source_address, cb_ifver = 2, compact = self.compact_sip)
+                                                               laddress=self.source_address, cb_ifver=2,
+                                                               compact=self.compact_sip)
         del self.reqs[cseq]
         return True
 
@@ -197,10 +198,10 @@ class UA(object):
         cseq, method = resp.getHFBody('cseq').getCSeq()
         if method == 'INVITE' and not self.pass_auth and cseq in self.reqs:
             if code == 401 and self.processChallenge(resp, cseq, \
-              'www-authenticate', 'authorization'):
+                                                     'www-authenticate', 'authorization'):
                 return None
             if code == 407 and self.processChallenge(resp, cseq, \
-              'proxy-authenticate', 'proxy-authorization'):
+                                                     'proxy-authenticate', 'proxy-authorization'):
                 return None
         if code >= 200 and cseq in self.reqs:
             del self.reqs[cseq]
@@ -210,7 +211,7 @@ class UA(object):
         self.emitPendingEvents()
 
     def recvEvent(self, event):
-        #print self, event
+        # print self, event
         if self.state == None:
             if isinstance(event, CCEventTry) or isinstance(event, CCEventFail) or isinstance(event, CCEventDisconnect):
                 self.changeState((UacStateIdle,))
@@ -221,11 +222,11 @@ class UA(object):
             self.changeState(newstate)
         self.emitPendingEvents()
 
-    def disconnect(self, rtime = None):
+    def disconnect(self, rtime=None):
         if rtime == None:
             rtime = MonoTime()
-        self.equeue.append(CCEventDisconnect(rtime = rtime))
-        self.recvEvent(CCEventDisconnect(rtime = rtime))
+        self.equeue.append(CCEventDisconnect(rtime=rtime))
+        self.recvEvent(CCEventDisconnect(rtime=rtime))
 
     def expires(self):
         self.expire_timer = None
@@ -254,7 +255,7 @@ class UA(object):
     def emitEvent(self, event):
         if self.event_cb != None:
             if self.elast_seq != None and self.elast_seq >= event.seq:
-                #print 'ignoring out-of-order event', event, event.seq, self.elast_seq, self.cId
+                # print 'ignoring out-of-order event', event, event.seq, self.elast_seq, self.cId
                 return
             self.elast_seq = event.seq
             self.event_cb(event, self)
@@ -263,88 +264,88 @@ class UA(object):
         while len(self.equeue) != 0 and self.event_cb != None:
             event = self.equeue.pop(0)
             if self.elast_seq != None and self.elast_seq >= event.seq:
-                #print 'ignoring out-of-order event', event, event.seq, self.elast_seq, self.cId
+                # print 'ignoring out-of-order event', event, event.seq, self.elast_seq, self.cId
                 continue
             self.elast_seq = event.seq
             self.event_cb(event, self)
 
-    def genRequest(self, method, body = None, cqop = None, \
-      reason = None, max_forwards = None):
+    def genRequest(self, method, body=None, cqop=None, \
+                   reason=None, max_forwards=None):
         if self.outbound_proxy != None:
             target = self.outbound_proxy
         else:
             target = self.rAddr
         if max_forwards != None:
-            max_forwards_hf = SipMaxForwards(number = max_forwards)
+            max_forwards_hf = SipMaxForwards(number=max_forwards)
         else:
             max_forwards_hf = None
-        req = SipRequest(method = method, ruri = self.rTarget, to = self.rUri, fr0m = self.lUri,
-                         cseq = self.lCSeq, callid = self.cId, contact = self.lContact,
-                         routes = self.routes, target = target,
-                         user_agent = self.local_ua, maxforwards = max_forwards_hf)
+        req = SipRequest(method=method, ruri=self.rTarget, to=self.rUri, fr0m=self.lUri,
+                         cseq=self.lCSeq, callid=self.cId, contact=self.lContact,
+                         routes=self.routes, target=target,
+                         user_agent=self.local_ua, maxforwards=max_forwards_hf)
         if cqop != None:
             challenge, qop = cqop
             if body != None and qop == 'auth-int':
                 sbody = str(body)
-                #print(len(sbody), sbody)
+                # print(len(sbody), sbody)
             else:
                 sbody = None
             auth = challenge.genAuthHF(self.username, self.password, method, \
-              str(self.rTarget), sbody, qop)
-            req.appendHeader(SipHeader(body = auth))
+                                       str(self.rTarget), sbody, qop)
+            req.appendHeader(SipHeader(body=auth))
         if body != None:
             req.setBody(body)
         if self.extra_headers != None:
             req.appendHeaders(self.extra_headers)
         if reason != None:
-            req.appendHeader(SipHeader(body = reason))
+            req.appendHeader(SipHeader(body=reason))
         self.reqs[self.lCSeq] = req
         return req
 
-    def sendUasResponse(self, scode, reason, body = None, contacts = None, \
-      reason_rfc3326 = None, extra_headers = None, ack_wait = False):
+    def sendUasResponse(self, scode, reason, body=None, contacts=None, \
+                        reason_rfc3326=None, extra_headers=None, ack_wait=False):
         uasResp = self.uasResp.getCopy()
         uasResp.setSCode(scode, reason)
         uasResp.setBody(body)
         if contacts != None:
             for contact in contacts:
-                uasResp.appendHeader(SipHeader(name = 'contact', body = contact))
+                uasResp.appendHeader(SipHeader(name='contact', body=contact))
         if reason_rfc3326 != None:
-            uasResp.appendHeader(SipHeader(body = reason_rfc3326))
+            uasResp.appendHeader(SipHeader(body=reason_rfc3326))
         if extra_headers != None:
             uasResp.appendHeaders(extra_headers)
         if ack_wait:
             ack_cb = self.recvACK
         else:
             ack_cb = None
-        self.global_config['_sip_tm'].sendResponse(uasResp, ack_cb = ack_cb, \
-          lossemul = self.uas_lossemul)
+        self.global_config['_sip_tm'].sendResponse(uasResp, ack_cb=ack_cb, \
+                                                   lossemul=self.uas_lossemul)
 
     def recvACK(self, req):
         if not self.isConnected():
             return
-        #print 'UA::recvACK', req
+        # print 'UA::recvACK', req
         newstate = self.state.recvACK(req)
         if newstate != None:
             self.changeState(newstate)
         self.emitPendingEvents()
 
-    def isYours(self, req = None, call_id = None, from_tag = None, to_tag = None):
-        #print self.branch, req.getHFBody('via').getBranch()
+    def isYours(self, req=None, call_id=None, from_tag=None, to_tag=None):
+        # print self.branch, req.getHFBody('via').getBranch()
         if req != None:
             if req.getMethod() != 'BYE' and self.branch != None and \
-              self.branch != req.getHFBody('via').getBranch():
+                    self.branch != req.getHFBody('via').getBranch():
                 return None
             call_id = str(req.getHFBody('call-id'))
             from_tag = req.getHFBody('from').getTag()
             to_tag = req.getHFBody('to').getTag()
-        #print str(self.cId), call_id
+        # print str(self.cId), call_id
         if call_id != str(self.cId):
             return None
-        #print self.rUri.getTag(), from_tag
+        # print self.rUri.getTag(), from_tag
         if self.rUri != None and self.rUri.getTag() != from_tag:
             return None
-        #print self.lUri.getTag(), to_tag
+        # print self.lUri.getTag(), to_tag
         if self.lUri != None and self.lUri.getTag() != to_tag:
             return None
         return self

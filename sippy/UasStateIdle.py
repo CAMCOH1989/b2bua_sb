@@ -33,28 +33,29 @@ from sippy.SipContact import SipContact
 from sippy.SipFrom import SipFrom
 from sippy.SipTo import SipTo
 
+
 class UasStateIdle(UaStateGeneric):
     sname = 'Idle(UAS)'
 
     def recvRequest(self, req):
         if req.getMethod() != 'INVITE':
-            #print 'wrong request %s in the Trying state' % req.getMethod()
+            # print 'wrong request %s in the Trying state' % req.getMethod()
             return None
         self.ua.origin = 'caller'
-        #print('INVITE received in the Idle state, going to the Trying state')
-        self.ua.uasResp = req.genResponse(100, 'Trying', server = self.ua.local_ua)
-        self.ua.lCSeq = 100 # XXX: 100 for debugging so that incorrect CSeq generation will be easily spotted
+        # print('INVITE received in the Idle state, going to the Trying state')
+        self.ua.uasResp = req.genResponse(100, 'Trying', server=self.ua.local_ua)
+        self.ua.lCSeq = 100  # XXX: 100 for debugging so that incorrect CSeq generation will be easily spotted
         if self.ua.lContact == None:
             self.ua.lContact = SipContact()
         self.ua.rTarget = req.getHFBody('contact').getUrl().getCopy()
         self.ua.routes = [x.getCopy() for x in self.ua.uasResp.getHFBodys('record-route')]
         if len(self.ua.routes) > 0:
             if not self.ua.routes[0].getUrl().lr:
-                self.ua.routes.append(SipRoute(address = SipAddress(url = self.ua.rTarget)))
+                self.ua.routes.append(SipRoute(address=SipAddress(url=self.ua.rTarget)))
                 self.ua.rTarget = self.ua.routes.pop(0).getUrl()
                 self.ua.rAddr = self.ua.rTarget.getAddr()
             elif self.ua.outbound_proxy != None:
-                self.ua.routes.append(SipRoute(address = SipAddress(url = self.ua.rTarget)))
+                self.ua.routes.append(SipRoute(address=SipAddress(url=self.ua.rTarget)))
                 self.ua.rTarget = self.ua.routes[0].getUrl().getCopy()
                 self.ua.rTarget.lr = False
                 self.ua.rTarget.other = tuple()
@@ -64,12 +65,12 @@ class UasStateIdle(UaStateGeneric):
         else:
             self.ua.rAddr = self.ua.rTarget.getAddr()
         self.ua.rAddr0 = self.ua.rAddr
-        self.ua.global_config['_sip_tm'].sendResponse(self.ua.uasResp, lossemul = self.ua.uas_lossemul)
+        self.ua.global_config['_sip_tm'].sendResponse(self.ua.uasResp, lossemul=self.ua.uas_lossemul)
         self.ua.uasResp.getHFBody('to').setTag(self.ua.lTag)
-        self.ua.lUri = SipFrom(address = self.ua.uasResp.getHFBody('to').getUri())
-        self.ua.rUri = SipTo(address = self.ua.uasResp.getHFBody('from').getUri())
+        self.ua.lUri = SipFrom(address=self.ua.uasResp.getHFBody('to').getUri())
+        self.ua.rUri = SipTo(address=self.ua.uasResp.getHFBody('from').getUri())
         self.ua.cId = self.ua.uasResp.getHFBody('call-id')
-        self.ua.global_config['_sip_tm'].regConsumer(self.ua, str(self.ua.cId), compact = self.ua.compact_sip)
+        self.ua.global_config['_sip_tm'].regConsumer(self.ua, str(self.ua.cId), compact=self.ua.compact_sip)
         if req.countHFs('authorization') == 0:
             auth = None
         else:
@@ -77,7 +78,7 @@ class UasStateIdle(UaStateGeneric):
         body = req.getBody()
         self.ua.branch = req.getHFBody('via').getBranch()
         event = CCEventTry((self.ua.cId, self.ua.rUri.getUrl().username, req.getRURI().username, body, auth, \
-          self.ua.rUri.getUri().name), rtime = req.rtime, origin = self.ua.origin)
+                            self.ua.rUri.getUri().name), rtime=req.rtime, origin=self.ua.origin)
         try:
             event.reason = req.getHFBody('reason')
         except:
@@ -108,6 +109,7 @@ class UasStateIdle(UaStateGeneric):
         self.ua.equeue.append(event)
         self.ua.setup_ts = req.rtime
         return (UasStateTrying,)
+
 
 if not 'UasStateTrying' in globals():
     from sippy.UasStateTrying import UasStateTrying

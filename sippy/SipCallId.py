@@ -35,7 +35,8 @@ CALL_ID_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy
 _clen = len(CALL_ID_CHARSET)
 DEFAULT_TEST_LEN = (32, 16)
 
-def gen_test_cid(lens = DEFAULT_TEST_LEN):
+
+def gen_test_cid(lens=DEFAULT_TEST_LEN):
     r = ''
     for j in (0, 1):
         for i in range(0, lens[j]):
@@ -44,11 +45,12 @@ def gen_test_cid(lens = DEFAULT_TEST_LEN):
             r += '@'
     return r
 
+
 class SipCallId(SipGenericHF):
     hf_names = ('call-id', 'i')
     body = None
 
-    def __init__(self, body = None):
+    def __init__(self, body=None):
         SipGenericHF.__init__(self, body)
         self.parsed = True
         if body == None:
@@ -62,7 +64,7 @@ class SipCallId(SipGenericHF):
         salt = str((random() * 1000000000) + time())
         self.body = md5(salt.encode()).hexdigest() + '@' + str(SipConf.my_address)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 'i'
         return 'Call-ID'

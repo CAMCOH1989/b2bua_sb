@@ -28,6 +28,7 @@ from sippy.SipConf import SipConf
 from time import time
 from random import random
 
+
 class SdpOrigin(object):
     _session_id = int(random() * time() * 1000.0)
     username = None
@@ -38,7 +39,7 @@ class SdpOrigin(object):
     address = None
     session_id = None
 
-    def __init__(self, body = None, cself = None):
+    def __init__(self, body=None, cself=None):
         if body != None:
             self.username, self.session_id, self.version, self.network_type, self.address_type, self.address = body.split()
         elif cself == None:
@@ -58,17 +59,20 @@ class SdpOrigin(object):
             self.address = cself.address
 
     def __str__(self):
-        return '%s %s %s %s %s %s' % (self.username, self.session_id, self.version, self.network_type, self.address_type, self.address)
+        return '%s %s %s %s %s %s' % (
+            self.username, self.session_id, self.version, self.network_type, self.address_type, self.address)
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         if local_addr != None and 'my' in dir(self.address):
             if local_addr.startswith('['):
                 address_type = 'IP6'
                 local_addr = local_addr[1:-1]
             else:
                 address_type = 'IP4'
-            return '%s %s %s %s %s %s' % (self.username, self.session_id, self.version, self.network_type, address_type, local_addr)
-        return '%s %s %s %s %s %s' % (self.username, self.session_id, self.version, self.network_type, self.address_type, self.address)
+            return '%s %s %s %s %s %s' % (
+                self.username, self.session_id, self.version, self.network_type, address_type, local_addr)
+        return '%s %s %s %s %s %s' % (
+            self.username, self.session_id, self.version, self.network_type, self.address_type, self.address)
 
     def getCopy(self):
-        return self.__class__(cself = self)
+        return self.__class__(cself=self)

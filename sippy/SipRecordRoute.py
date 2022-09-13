@@ -26,11 +26,12 @@
 
 from sippy.SipFrom import SipFrom
 
+
 class SipRecordRoute(SipFrom):
     hf_names = ('record-route',)
     relaxedparser = False
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if name == 'record-route':
             return 'Record-Route'
         else:

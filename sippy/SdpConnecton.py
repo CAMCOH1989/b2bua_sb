@@ -30,7 +30,7 @@ class SdpConnecton(object):
     atype = None
     addr = None
 
-    def __init__(self, body = None, cself = None):
+    def __init__(self, body=None, cself=None):
         if body != None:
             self.ntype, self.atype, self.addr = body.split()[:3]
         else:
@@ -41,8 +41,8 @@ class SdpConnecton(object):
     def __str__(self):
         return '%s %s %s' % (self.ntype, self.atype, self.addr)
 
-    def localStr(self, local_addr = None, local_port = None):
+    def localStr(self, local_addr=None, local_port=None):
         return '%s %s %s' % (self.ntype, self.atype, self.addr)
 
     def getCopy(self):
-        return SdpConnecton(cself = self)
+        return SdpConnecton(cself=self)

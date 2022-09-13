@@ -26,7 +26,6 @@
 
 from __future__ import print_function
 
-from sippy.Time.Timeout import Timeout
 from threading import Thread, Condition
 from errno import EINTR, EPIPE, ENOTCONN, ECONNRESET
 from sippy.Time.MonoTime import MonoTime
@@ -40,6 +39,7 @@ from sippy.Core.Exceptions import dump_exception
 from sippy.Core.EventDispatcher import ED2
 
 _MAX_RECURSE = 10
+
 
 class _RTPPLWorker(Thread):
     userv = None
@@ -59,12 +59,12 @@ class _RTPPLWorker(Thread):
             address = self.userv.address
         self.s.connect(address)
 
-    def send_raw(self, command, _recurse = 0, stime = None):
+    def send_raw(self, command, _recurse=0, stime=None):
         if _recurse > _MAX_RECURSE:
             raise Exception('Cannot reconnect: %s' % (str(self.userv.address),))
         if self.s == None:
             self.connect()
-        #print('%s.send_raw(%s)' % (id(self), command))
+        # print('%s.send_raw(%s)' % (id(self), command))
         if stime == None:
             stime = MonoTime()
         while True:
@@ -97,9 +97,9 @@ class _RTPPLWorker(Thread):
         return (rval, rtpc_delay)
 
     def run(self):
-        #print(self.run, 'enter')
+        # print(self.run, 'enter')
         while True:
-            #print(self.run, 'spin')
+            # print(self.run, 'spin')
             self.userv.wi_available.acquire()
             while len(self.userv.wi) == 0:
                 self.userv.wi_available.wait()
@@ -131,6 +131,7 @@ class _RTPPLWorker(Thread):
         except:
             dump_exception('Rtp_proxy_client_stream: unhandled exception when processing RTPproxy reply')
 
+
 class Rtp_proxy_client_stream(Rtp_proxy_client_net):
     is_local = None
     wi_available = None
@@ -142,9 +143,9 @@ class Rtp_proxy_client_stream(Rtp_proxy_client_net):
     family = None
     sock_type = socket.SOCK_STREAM
 
-    def __init__(self, global_config, address = '/var/run/rtpproxy.sock', \
-      bind_address = None, nworkers = 1, family = socket.AF_UNIX):
-        #print('Rtp_proxy_client_stream.__init__', address, bind_address, nworkers, family)
+    def __init__(self, global_config, address='/var/run/rtpproxy.sock',
+                 bind_address=None, nworkers=1, family=socket.AF_UNIX):
+        # print('Rtp_proxy_client_stream.__init__', address, bind_address, nworkers, family)
         if family == socket.AF_UNIX:
             self.is_local = True
             self.address = address
@@ -164,7 +165,7 @@ class Rtp_proxy_client_stream(Rtp_proxy_client_net):
         self.nworkers_act = i + 1
         self.delay_flt = recfilter(0.95, 0.25)
 
-    def send_command(self, command, result_callback = None, *callback_parameters):
+    def send_command(self, command, result_callback=None, *callback_parameters):
         if self.nworkers_act == 0:
             self.rtpp_class._reconnect(self, self.address)
         if isinstance(command, Rtp_proxy_cmd):
@@ -176,12 +177,12 @@ class Rtp_proxy_client_stream(Rtp_proxy_client_net):
         self.wi_available.notify()
         self.wi_available.release()
 
-    def reconnect(self, address, bind_address = None):
+    def reconnect(self, address, bind_address=None):
         if not self.is_local:
-            address = self.getdestbyaddr(address, family)
+            address = self.getdestbyaddr(address, socket.AF_UNIX)
         self.rtpp_class._reconnect(self, address, bind_address)
 
-    def _reconnect(self, address, bind_address = None):
+    def _reconnect(self, address, bind_address=None):
         Rtp_proxy_client_stream.shutdown(self)
         self.address = address
         self.workers = []
@@ -208,18 +209,25 @@ class Rtp_proxy_client_stream(Rtp_proxy_client_net):
     def get_rtpc_delay(self):
         return self.delay_flt.lastval
 
+
 if __name__ == '__main__':
     class robj(object):
         rval = None
+
+
     r = robj()
+
+
     def display(res, ro, arg):
         print(res, arg)
         ro.rval = (res, arg)
         ED2.breakLoop()
-    r = Rtp_proxy_client_stream({'_sip_address':'1.2.3.4'})
+
+
+    r = Rtp_proxy_client_stream({'_sip_address': '1.2.3.4'})
     r.send_command('VF 123456', display, r, 'abcd')
     ED2.loop()
     r.shutdown()
     print(r.rval)
-    assert(r.rval == (u'0', 'abcd'))
+    assert (r.rval == (u'0', 'abcd'))
     print('passed')

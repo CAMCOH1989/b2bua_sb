@@ -32,6 +32,7 @@ from sippy.ESipHeaderCSV import ESipHeaderCSV
 from sippy.ESipHeaderIgnore import ESipHeaderIgnore
 from sippy.ESipParseException import ESipParseException
 
+
 class SipMsg(object):
     headers = None
     body = None
@@ -41,7 +42,7 @@ class SipMsg(object):
     nated = False
     rtime = None
 
-    def __init__(self, buf = None):
+    def __init__(self, buf=None):
         self.headers = []
         if buf == None:
             return
@@ -71,7 +72,7 @@ class SipMsg(object):
         header_names = []
         for line in lines[1:]:
             try:
-                header = SipHeader(line, fixname = True)
+                header = SipHeader(line, fixname=True)
                 if header.name == 'content-type':
                     self.__content_type = header
                 elif header.name == 'content-length':
@@ -81,7 +82,7 @@ class SipMsg(object):
                     header_names.append(header.name)
             except ESipHeaderCSV as einst:
                 for body in einst.bodys:
-                    header = SipHeader(name = einst.name, bodys = body)
+                    header = SipHeader(name=einst.name, bodys=body)
                     if header.name == 'content-type':
                         self.__content_type = header
                     elif header.name == 'content-length':
@@ -161,7 +162,7 @@ class SipMsg(object):
             s += 'Content-Length: 0\r\n\r\n'
         return s
 
-    def localStr(self, local_addr = None, local_port = None, compact = False):
+    def localStr(self, local_addr=None, local_port=None, compact=False):
         s = self.getSL() + '\r\n'
         for header in self.headers:
             s += header.localStr(local_addr, local_port, compact) + '\r\n'
@@ -202,13 +203,13 @@ class SipMsg(object):
     def getHFBodys(self, name):
         return [x.getBody() for x in self.headers if x.name == name]
 
-    def getHFBody(self, name, idx = 0):
+    def getHFBody(self, name, idx=0):
         return [x for x in self.headers if x.name == name][idx].getBody()
 
     def getHFBCopys(self, name):
         return [x.getBCopy() for x in self.headers if x.name == name]
 
-    def getHFBCopy(self, name, idx = 0):
+    def getHFBCopy(self, name, idx=0):
         return [x for x in self.headers if x.name == name][idx].getBCopy()
 
     def replaceHeader(self, oheader, nheader):
@@ -247,7 +248,7 @@ class SipMsg(object):
     def setSource(self, address):
         self.source = address
 
-    def getTId(self, wCSM = False, wBRN = False, wTTG = False):
+    def getTId(self, wCSM=False, wBRN=False, wTTG=False):
         headers_dict = dict([(x.name, x) for x in self.headers if x.name in ('cseq', 'call-id', 'from')])
         cseq, method = headers_dict['cseq'].getBody().getCSeq()
         rval = [str(headers_dict['call-id'].getBody()), headers_dict['from'].getBody().getTag(), cseq]

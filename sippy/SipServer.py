@@ -27,11 +27,12 @@
 from sippy.SipGenericHF import SipGenericHF
 from sippy.SipConf import SipConf
 
+
 class SipServer(SipGenericHF):
     hf_names = ('server',)
     name = None
 
-    def __init__(self, body = None, name = None):
+    def __init__(self, body=None, name=None):
         SipGenericHF.__init__(self, body)
         self.parsed = True
         if body != None:
@@ -45,4 +46,4 @@ class SipServer(SipGenericHF):
         return self.name
 
     def getCopy(self):
-        return self.__class__(name = self.name)
+        return self.__class__(name=self.name)

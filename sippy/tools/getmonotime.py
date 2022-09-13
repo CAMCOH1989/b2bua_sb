@@ -26,10 +26,12 @@
 import getopt, sys
 import os.path
 
+
 def usage():
     sys.stderr.write('Usage: %s [-r] [-S sippy_path] [-C clock_name]\n' % \
-      (os.path.basename(sys.argv[0])))
+                     (os.path.basename(sys.argv[0])))
     sys.exit(1)
+
 
 if __name__ == '__main__':
     sippy_path = None
@@ -60,4 +62,5 @@ if __name__ == '__main__':
         print(clock_getdtime(eval(clock_name)))
     else:
         from sippy.Time.clock_dtime import CLOCK_REALTIME
+
         print("%f %f" % (clock_getdtime(eval(clock_name)), clock_getdtime(CLOCK_REALTIME)))

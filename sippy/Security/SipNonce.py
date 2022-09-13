@@ -23,12 +23,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#import sys; sys.path.append('..')
+# import sys; sys.path.append('..')
 
 from base64 import b64encode, b64decode
 
-from Crypto import Random
-from Crypto.Cipher import AES
+from Cryptodome import Random
+from Cryptodome.Cipher import AES
 
 from sippy.Time.clock_dtime import clock_getntime, CLOCK_MONOTONIC
 
@@ -52,6 +52,7 @@ def bxor(ba1, ba2):
     ba2 = from_bytes_be(ba2)
     return to_bytes_be(ba1 ^ ba2, olen)
 
+
 class AESCipher(object):
     bpad = '='.encode()
     cipher = None
@@ -71,22 +72,25 @@ class AESCipher(object):
         iv = raw[:AES.block_size]
         return bxor(raw[AES.block_size:], iv)
 
-DGST_MD5        = (1 << 0)
-DGST_MD5SESS    = (1 << 1)
-DGST_SHA256     = (1 << 2)
+
+DGST_MD5 = (1 << 0)
+DGST_MD5SESS = (1 << 1)
+DGST_SHA256 = (1 << 2)
 DGST_SHA256SESS = (1 << 3)
-DGST_SHA512     = (1 << 4)
+DGST_SHA512 = (1 << 4)
 DGST_SHA512SESS = (1 << 5)
 
 DGST_PRIOS = (DGST_SHA512, DGST_SHA512SESS, DGST_SHA256, DGST_SHA256SESS, DGST_MD5, DGST_MD5SESS)
 
+
 class HashOracle(object):
-    try: key
-    except: key = Random.new().read(AES.block_size * 2)
+    key = ''
     ac = None
-    vtime = 32 * 10**9
+    vtime = 32 * 10 ** 9
 
     def __init__(self):
+        if not self.key:
+            self.key = Random.new().read(AES.block_size * 2)
         self.ac = AESCipher(self.key)
 
     def emit_challenge(self, cmask):
@@ -94,7 +98,7 @@ class HashOracle(object):
         for ms in cmask:
             ts128 |= ms
         cryptic = self.ac.encrypt(to_bytes_be(ts128, AES.block_size))
-        #return cryptic
+        # return cryptic
         return cryptic.decode()
 
     def validate_challenge(self, cryptic, cmask):
@@ -109,8 +113,10 @@ class HashOracle(object):
             return False
         return True
 
+
 if __name__ == '__main__':
     from threading import Thread
+
 
     class TestExpiration(Thread):
         nonce = None
@@ -135,6 +141,7 @@ if __name__ == '__main__':
             sleep(2)
             if self.ho.validate_challenge(self.nonce, DGST_PRIOS):
                 self.excpt = Exception('Expiration Test Failed #3')
+
 
     ho = HashOracle()
 

@@ -27,9 +27,10 @@
 from sippy.SipWWWAuthenticate import SipWWWAuthenticate
 from sippy.SipProxyAuthorization import SipProxyAuthorization
 
+
 class SipProxyAuthenticate(SipWWWAuthenticate):
     hf_names = ('proxy-authenticate',)
     aclass = SipProxyAuthorization
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         return 'Proxy-Authenticate'

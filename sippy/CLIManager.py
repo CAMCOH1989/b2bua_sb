@@ -42,6 +42,7 @@ try:
 except NameError:
     _uobj = bytes
 
+
 class _Acceptor(Thread):
     clicm = None
     pollobj = None
@@ -57,9 +58,9 @@ class _Acceptor(Thread):
         self.start()
 
     def run(self):
-        #print(self.run, 'enter')
+        # print(self.run, 'enter')
         while True:
-            #print(self.run, 'cycle')
+            # print(self.run, 'cycle')
             pollret = dict(self.pollobj.poll()).get(self.fileno, 0)
             if pollret & POLLNVAL != 0:
                 break
@@ -77,10 +78,11 @@ class _Acceptor(Thread):
             except Exception as e:
                 dump_exception('CLIConnectionManager: unhandled exception when accepting incoming connection')
                 break
-            #print(self.run, 'handle_accept')
+            # print(self.run, 'handle_accept')
             ED2.callFromThread(self.clicm.handle_accept, clientsock, addr)
         self.clicm = None
-        #print(self.run, 'exit')
+        # print(self.run, 'exit')
+
 
 class CLIConnectionManager(object):
     command_cb = None
@@ -89,9 +91,9 @@ class CLIConnectionManager(object):
     serversock = None
     atr = None
 
-    def __init__(self, command_cb, address = None, sock_owner = None, backlog = 16, \
-      tcp = False, sock_mode = None):
-        #print(CLIConnectionManager.__init__, ED2)
+    def __init__(self, command_cb, address=None, sock_owner=None, backlog=16,
+                 tcp=False, sock_mode=None):
+        # print(CLIConnectionManager.__init__, ED2)
         self.command_cb = command_cb
         if not tcp:
             self.serversock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -109,6 +111,7 @@ class CLIConnectionManager(object):
                 remove(address)
             except:
                 pass
+
         self.serversock.bind(address)
         if not tcp:
             if sock_owner != None:
@@ -119,7 +122,7 @@ class CLIConnectionManager(object):
         self.atr = _Acceptor(self)
 
     def handle_accept(self, conn, address):
-        #print(self.handle_accept)
+        # print(self.handle_accept)
         if self.tcp and self.accept_list != None and address[0] not in self.accept_list:
             conn.close()
             return
@@ -135,6 +138,7 @@ class CLIConnectionManager(object):
         self.command_cb = None
         self.atr.join()
 
+
 class _CLIManager_w(Thread):
     clim = None
     wbuffer = None
@@ -142,7 +146,7 @@ class _CLIManager_w(Thread):
     close_pendind = False
 
     def __init__(self, clientsock, clim):
-        #print(self.__init__)
+        # print(self.__init__)
         Thread.__init__(self)
         self.clientsock = clientsock
         self.clim = clim
@@ -152,9 +156,9 @@ class _CLIManager_w(Thread):
         self.start()
 
     def run(self):
-        #print(self.run, 'enter')
+        # print(self.run, 'enter')
         while True:
-            #print(self.run, 'cycle')
+            # print(self.run, 'cycle')
             self.w_available.acquire()
             while self.wbuffer != None and len(self.wbuffer) == 0 and not self.close_pendind:
                 self.w_available.wait()
@@ -176,7 +180,7 @@ class _CLIManager_w(Thread):
         if self.close_pendind:
             ED2.callFromThread(self.clim.shutdown)
         self.clim = None
-        #print(self.run, 'exit')
+        # print(self.run, 'exit')
 
     def send(self, data):
         self.w_available.acquire()
@@ -185,7 +189,7 @@ class _CLIManager_w(Thread):
         self.w_available.notify()
         self.w_available.release()
 
-    def shutdown(self, soft = False):
+    def shutdown(self, soft=False):
         self.w_available.acquire()
         if soft:
             self.close_pendind = True
@@ -194,11 +198,12 @@ class _CLIManager_w(Thread):
         self.w_available.notify()
         self.w_available.release()
 
+
 class _CLIManager_r(Thread):
     clim = None
 
     def __init__(self, clientsock, clim):
-        #print(self.__init__)
+        # print(self.__init__)
         Thread.__init__(self)
         self.clientsock = clientsock
         self.clim = clim
@@ -229,6 +234,7 @@ class _CLIManager_r(Thread):
                     continue
                 ED2.callFromThread(self.clim.handle_cmd, cmd)
         self.clim = None
+
 
 class CLIManager(object):
     clientsock = None
@@ -261,7 +267,7 @@ class CLIManager(object):
         return self.send(data)
 
     def close(self):
-        self.wthr.shutdown(soft = True)
+        self.wthr.shutdown(soft=True)
 
     def shutdown(self):
         if self.wthr == None:
@@ -276,15 +282,18 @@ class CLIManager(object):
         self.wthr = None
         self.rthr = None
 
+
 if __name__ == '__main__':
     def callback(clm, cmd):
         print('in:', cmd)
         clm.send('hello, there!\n')
         clm.close()
         ED2.breakLoop()
+
+
     laddr_tcp = ('127.0.0.1', 12345)
     laddr_unix = '/tmp/test.sock'
-    f = CLIConnectionManager(callback, laddr_tcp, tcp = True)
+    f = CLIConnectionManager(callback, laddr_tcp, tcp=True)
     ED2.loop()
     f.shutdown()
     f = CLIConnectionManager(callback, laddr_unix)

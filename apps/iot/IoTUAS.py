@@ -40,15 +40,16 @@ from sippy.misc import local4remote
 from RTPGen import RTPGen
 
 body_txt = 'v=0\r\n' + \
-  'o=- 380960 380960 IN IP4 192.168.22.95\r\n' + \
-  's=-\r\n' + \
-  'c=IN IP4 192.168.22.95\r\n' + \
-  't=0 0\r\n' + \
-  'm=audio 16474 RTP/AVP 0\r\n' + \
-  'a=rtpmap:0 PCMU/8000\r\n' + \
-  'a=ptime:30\r\n' + \
-  'a=sendrecv\r\n' + \
-  '\r\n'
+           'o=- 380960 380960 IN IP4 192.168.22.95\r\n' + \
+           's=-\r\n' + \
+           'c=IN IP4 192.168.22.95\r\n' + \
+           't=0 0\r\n' + \
+           'm=audio 16474 RTP/AVP 0\r\n' + \
+           'a=rtpmap:0 PCMU/8000\r\n' + \
+           'a=ptime:30\r\n' + \
+           'a=sendrecv\r\n' + \
+           '\r\n'
+
 
 class IoTUAS(object):
     global_config = None
@@ -62,7 +63,7 @@ class IoTUAS(object):
     rserv = None
     ragent = None
 
-    def __init__(self, global_config, authname = None, authpass = None):
+    def __init__(self, global_config, authname=None, authpass=None):
         self.global_config = global_config
         self.authname = authname
         self.authpass = authpass
@@ -71,14 +72,14 @@ class IoTUAS(object):
         self.body = MsgBody(body_txt)
         self.body.parse()
         proxy, port = global_config['nh_addr']
-        aor = SipURL(username = self.cli, host = proxy, port = port)
+        aor = SipURL(username=self.cli, host=proxy, port=port)
         caddr = local4remote(proxy)
         cport = global_config['_sip_port']
-        contact = SipURL(username = self.cli, host = caddr, port = cport)
-        ragent = SipRegistrationAgent(global_config, aor, contact, user = self.authname, passw = self.authpass)
+        contact = SipURL(username=self.cli, host=caddr, port=cport)
+        ragent = SipRegistrationAgent(global_config, aor, contact, user=self.authname, passw=self.authpass)
         ragent.doregister()
 
-    def sess_term(self, ua, rtime, origin, result = 0):
+    def sess_term(self, ua, rtime, origin, result=0):
         print('disconnected')
         self.rgen.stop()
         self.rserv.shutdown()
@@ -96,7 +97,7 @@ class IoTUAS(object):
             if self.rserv != None:
                 return (req.genResponse(486, 'Busy Here'), None, None)
             # New dialog
-            uaA = UA(self.global_config, self.recvEvent, disc_cbs = (self.sess_term,))
+            uaA = UA(self.global_config, self.recvEvent, disc_cbs=(self.sess_term,))
             uaA.recvRequest(req, sip_t)
             return
         return (req.genResponse(501, 'Not Implemented'), None, None)

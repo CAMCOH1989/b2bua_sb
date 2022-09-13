@@ -28,11 +28,12 @@ from sippy.SipGenericHF import SipGenericHF
 
 from functools import reduce
 
+
 class SipSupported(SipGenericHF):
     hf_names = ('supported',)
     caps = None
 
-    def __init__(self, body = None, caps = None):
+    def __init__(self, body=None, caps=None):
         SipGenericHF.__init__(self, body)
         if body == None:
             self.parsed = True
@@ -45,14 +46,14 @@ class SipSupported(SipGenericHF):
     def __str__(self):
         if not self.parsed:
             return self.body
-        return reduce(lambda x,y: '%s,%s' % (x, y), self.caps)
+        return reduce(lambda x, y: '%s,%s' % (x, y), self.caps)
 
     def getCopy(self):
         if not self.parsed:
             return SipSupported(self.body)
-        return SipSupported(caps = self.caps)
+        return SipSupported(caps=self.caps)
 
-    def getCanName(self, name, compact = False):
+    def getCanName(self, name, compact=False):
         if compact:
             return 'k'
         return 'Supported'

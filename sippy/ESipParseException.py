@@ -10,7 +10,7 @@ class ESipParseException(Exception):
     sip_response = None
     arg = None
 
-    def __init__(self, arg, sip_response = None):
+    def __init__(self, arg, sip_response=None):
         self.arg = arg
         self.sip_response = sip_response
 

@@ -25,10 +25,12 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import getopt
+import sys
+from pathlib import Path
 
 from sippy.UA import UA
 from sippy.CCEvents import CCEventDisconnect, CCEventTry
-from sippy.UaStateDead import UaStateDead
 from sippy.SipConf import SipConf
 from sippy.SipLogger import SipLogger
 from sippy.SipTransactionManager import SipTransactionManager
@@ -36,8 +38,6 @@ from sippy.StatefulProxy import StatefulProxy
 from sippy.misc import daemonize
 from sippy.Core.EventDispatcher import ED2
 
-import getopt, os, sys
-#import gc
 
 class CallController(object):
     global_config = None
@@ -57,25 +57,20 @@ class CallController(object):
                     # Some weird event received
                     self.uaA.recvEvent(CCEventDisconnect())
                     return
-                self.uaO = UA(self.global_config, event_cb = self.recvEvent, \
-                  nh_address = self.global_config['nh_addr'])
+                self.uaO = UA(self.global_config, event_cb=self.recvEvent, \
+                              nh_address=self.global_config['nh_addr'])
             self.uaO.recvEvent(event)
         else:
             self.uaA.recvEvent(event)
 
+
 class CallMap(object):
     global_config = None
     proxy = None
-    #rc1 = None
-    #rc2 = None
 
     def __init__(self, global_config):
         self.global_config = global_config
         self.proxy = StatefulProxy(global_config, self.global_config['nh_addr'])
-        #gc.disable()
-        #gc.set_debug(gc.DEBUG_STATS)
-        #gc.set_threshold(0)
-        #print gc.collect()
 
     def recvRequest(self, req, sip_t):
         if req.getHFBody('to').getTag() != None:
@@ -89,9 +84,10 @@ class CallMap(object):
             # Registration
             return self.proxy.recvRequest(req)
         if req.getMethod() in ('NOTIFY', 'PING'):
-            # Whynot?
+            # Whynot?a
             return (req.genResponse(200, 'OK'), None, None)
         return (req.genResponse(501, 'Not Implemented'), None, None)
+
 
 def main_func():
     try:
@@ -101,8 +97,8 @@ def main_func():
         sys.exit(1)
     laddr = None
     lport = None
-    logfile = '/var/log/sippy.log'
-    global_config = {'nh_addr':['192.168.0.102', 5060]}
+    logfile = str(Path(__file__).parent.parent / 'sippy.log')
+    global_config = {'nh_addr': ['192.168.0.102', 5060]}
     foreground = False
     for o, a in opts:
         if o == '-f':
@@ -140,14 +136,13 @@ def main_func():
         global_config['_sip_address'] = laddr
     if lport != None:
         global_config['_sip_port'] = lport
-    global_config['_sip_logger'] = SipLogger('b2bua')
+    global_config['_sip_logger'] = SipLogger('b2bua', logfile=logfile)
 
     cmap = CallMap(global_config)
-
     global_config['_sip_tm'] = SipTransactionManager(global_config, cmap.recvRequest)
 
     ED2.loop()
 
+
 if __name__ == '__main__':
     main_func()
-
